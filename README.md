@@ -1,6 +1,6 @@
-# 🚗 RoadAssist - Road Accident Assistance System
+# 🚗 CrashAssist - Road Accident Assistance System
 
-RoadAssist is a full-stack web platform designed to help **drivers** and **insurance companies** handle road accidents efficiently by simplifying reporting, evidence collection, communication, and claims processing — all through a modern and responsive interface.
+CrashAssist is a full-stack web platform designed to help **drivers** and **insurance companies** handle road accidents efficiently by simplifying reporting, evidence collection, communication, and claims processing — all through a modern and responsive interface.
 
 ---
 
@@ -40,7 +40,7 @@ RoadAssist is a full-stack web platform designed to help **drivers** and **insur
 
 ```bash
 git clone https://github.com/MathengeGit/road-assist-project.git
-cd road-assist-project
+cd crash-assist-project
 
 2. Frontend Setup:
 cd frontend
@@ -55,7 +55,7 @@ npm install
 node app.js   # or nodemon app.js if installed
 
 🔧 Project Structure: 
-road-assist-project/
+crash-assist-project/
 ├── frontend/          # React + Tailwind UI
 ├── backend/           # Express API
 ├── README.md
