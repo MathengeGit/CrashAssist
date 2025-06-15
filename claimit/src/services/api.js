@@ -1,7 +1,14 @@
+// src/services/api.js
 import axios from 'axios';
 
+const BASE_URL = 'https://tidy-tables-shop.loca.lt'; // <- paste your latest valid URL here
+
 const api = axios.create({
-  baseURL: 'https://b633-105-161-154-185.ngrok-free.app/api', // change to actual IP when deploying or testing on mobile
+  baseURL: BASE_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 export default api;

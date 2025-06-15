@@ -15,9 +15,15 @@ app.get('/', (req, res) => {
   res.send('API is running');
 });
 
-// Connect to DB
+// Define ping route before DB connects
+app.get('/api/ping', (req, res) => {
+  res.json({ message: 'Backend connected successfully!' });
+});
+
+// Then connect to DB and start server
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
+    console.log("MongoDB connected");
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch(err => console.error(err));

@@ -1,17 +1,19 @@
-// src/navigation/AppNavigator.js
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from '../screens/HomeScreen';
-import LoginScreen from '../screens/LoginScreen';
+import { createStackNavigator } from '@react-navigation/stack';
+import TestConnectionScreen from '../screens/TestConnectionScreen';
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
 export default function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Navigator initialRouteName="TestConnection">
+        <Stack.Screen 
+          name="TestConnection" 
+          component={TestConnectionScreen} 
+          options={{ title: 'Connection Test' }} 
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
