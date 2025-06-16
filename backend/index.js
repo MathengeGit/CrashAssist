@@ -5,6 +5,8 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes'); // ✅ Auth routes
+const agentRoutes = require('./routes/agentRoutes');
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -34,6 +36,7 @@ app.get('/api/ping', (req, res) => {
 
 // Auth module routes
 app.use('/api/auth', authRoutes); // e.g. /api/auth/signup, /api/auth/login
+app.use('/api/agents', agentRoutes);
 
 // Connect to MongoDB and start server
 mongoose.connect(process.env.MONGO_URI, {
