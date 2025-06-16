@@ -7,22 +7,38 @@ import {
   Alert,
   StyleSheet,
   Modal,
-  ActivityIndicator,
 } from 'react-native';
 import axios from 'axios';
-import Icon from 'react-native-vector-icons/Feather'; // ✅ Tick icon
+import Icon from 'react-native-vector-icons/Feather';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [loading, setLoading] = useState(false);
   const [successModalVisible, setSuccessModalVisible] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
+  const validateInputs = () => {
+    let valid = true;
+    if (!email) {
+      setEmailError('Email is required');
+      valid = false;
+    } else {
+      setEmailError('');
     }
+    if (!password) {
+      setPasswordError('Password is required');
+      valid = false;
+    } else {
+      setPasswordError('');
+    }
+    return valid;
+  };
+
+  const handleLogin = async () => {
+    if (!validateInputs()) return;
 
     try {
       setLoading(true);
@@ -32,9 +48,7 @@ export default function LoginScreen({ navigation }) {
       });
 
       const { token, role } = res.data;
-
-      // OPTIONAL: Save token to AsyncStorage
-      // await AsyncStorage.setItem('token', token);
+      await AsyncStorage.setItem('token', token);
 
       setSuccessModalVisible(true);
 
@@ -54,6 +68,7 @@ export default function LoginScreen({ navigation }) {
     <View style={styles.container}>
       <Text style={styles.title}>Log In</Text>
 
+      <Text style={styles.label}>Email <Text style={styles.required}>*</Text></Text>
       <TextInput
         placeholder="Email"
         value={email}
@@ -62,6 +77,9 @@ export default function LoginScreen({ navigation }) {
         autoCapitalize="none"
         style={styles.input}
       />
+      {emailError ? <Text style={styles.error}>{emailError}</Text> : null}
+
+      <Text style={styles.label}>Password <Text style={styles.required}>*</Text></Text>
       <TextInput
         placeholder="Password"
         value={password}
@@ -69,6 +87,7 @@ export default function LoginScreen({ navigation }) {
         secureTextEntry
         style={styles.input}
       />
+      {passwordError ? <Text style={styles.error}>{passwordError}</Text> : null}
 
       <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
         <Text style={styles.buttonText}>{loading ? 'Logging in...' : 'Login'}</Text>
@@ -78,7 +97,6 @@ export default function LoginScreen({ navigation }) {
         Don't have an account? Sign up
       </Text>
 
-      {/* ✅ Success Modal */}
       <Modal transparent visible={successModalVisible} animationType="fade">
         <View style={styles.modalContainer}>
           <View style={styles.modalBox}>
@@ -94,7 +112,10 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, justifyContent: 'center', backgroundColor: '#fff' },
   title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  input: { backgroundColor: '#eee', padding: 10, marginBottom: 10, borderRadius: 6 },
+  label: { fontWeight: 'bold', marginBottom: 4 },
+  required: { color: 'red' },
+  input: { backgroundColor: '#eee', padding: 10, marginBottom: 8, borderRadius: 6 },
+  error: { color: 'red', marginBottom: 10 },
   button: { backgroundColor: '#4a90e2', padding: 15, borderRadius: 6, marginTop: 10 },
   buttonText: { textAlign: 'center', color: '#fff', fontWeight: 'bold' },
   link: { marginTop: 15, textAlign: 'center', color: '#4a90e2' },
