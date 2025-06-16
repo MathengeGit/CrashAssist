@@ -6,7 +6,7 @@ const User = require('../models/User');
 // ✅ Signup route
 router.post('/signup', signup);
 
-// ✅ Login route (if needed later)
+// ✅ Login route
 router.post('/login', login);
 
 // ✅ Get all Insurance Agents
@@ -15,6 +15,7 @@ router.get('/agents', async (req, res) => {
     const agents = await User.find({ role: 'InsuranceAgent' }).select('_id name email');
     res.json(agents);
   } catch (err) {
+    console.error('Error fetching agents:', err);
     res.status(500).json({ message: 'Error fetching agents' });
   }
 });

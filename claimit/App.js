@@ -1,10 +1,7 @@
 // App.js
-import AppNavigator from './src/navigation/AppNavigator';
-import { LogBox } from 'react-native';
-
-
+import React from 'react';
+import AppNavigator from './src/navigation/AppNavigator'; // ✅ Already includes NavigationContainer
 
 export default function App() {
-  
   return <AppNavigator />;
 }

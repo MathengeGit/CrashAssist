@@ -27,7 +27,7 @@ export default function SignupScreen({ navigation }) {
   useEffect(() => {
     const fetchAgents = async () => {
       try {
-        const res = await axios.get('https://odd-taxis-ring.loca.lt/api/agents');
+        const res = await axios.get('https://sour-foxes-cheat.loca.lt/api/agents');
         setAgents(res.data);
       } catch (err) {
         console.error('❌ Error loading agents:', err.message);
@@ -47,7 +47,7 @@ export default function SignupScreen({ navigation }) {
 
     try {
       setLoading(true);
-      const res = await axios.post('https://odd-taxis-ring.loca.lt/api/auth/signup', {
+      const res = await axios.post('https://sour-foxes-cheat.loca.lt/api/auth/signup', {
         name,
         phone,
         email,

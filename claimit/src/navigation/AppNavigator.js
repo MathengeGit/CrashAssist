@@ -3,7 +3,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import SplashScreen from '../screens/SplashScreen'; // 👈
 import SignupScreen from '../screens/SignupScreen'; // 👈
-// import LoginScreen from '../screens/LoginScreen'; // later if needed
+import LoginScreen from '../screens/LoginScreen';
+import DriverHome from '../screens/DriverHome';
+import AgentHome from '../screens/AgentHome';
 
 const Stack = createStackNavigator();
 
@@ -13,8 +15,9 @@ export default function AppNavigator() {
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Signup" component={SignupScreen} />
-        {/* Add login later:
-        <Stack.Screen name="Login" component={LoginScreen} /> */}
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="DriverHome" component={DriverHome} />
+      <Stack.Screen name="AgentHome" component={AgentHome} />
       </Stack.Navigator>
     </NavigationContainer>
   );
