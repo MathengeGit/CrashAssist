@@ -2,14 +2,15 @@ const express = require('express');
 const router = express.Router();
 const { signup, login } = require('../controllers/authController');
 const User = require('../models/User');
+const authMiddleware = require('../middlewares/authMiddleware');
 
-// ✅ Signup route
+// Signup
 router.post('/signup', signup);
 
-// ✅ Login route
+// Login
 router.post('/login', login);
 
-// ✅ Get all Insurance Agents
+// Get all insurance agents
 router.get('/agents', async (req, res) => {
   try {
     const agents = await User.find({ role: 'InsuranceAgent' }).select('_id name email');
@@ -19,5 +20,28 @@ router.get('/agents', async (req, res) => {
     res.status(500).json({ message: 'Error fetching agents' });
   }
 });
+
+// Get profile
+router.get('/profile', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    res.json({ user });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Add this to authRoutes.js
+router.put('/profile', authMiddleware, async (req, res) => {
+  try {
+    const updates = req.body;
+    const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true }).select('-password');
+    res.json({ user });
+  } catch (err) {
+    console.error('Profile update error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 
 module.exports = router;
