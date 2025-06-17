@@ -4,44 +4,44 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const authRoutes = require('./routes/authRoutes'); // ✅ Auth routes
-const agentRoutes = require('./routes/agentRoutes');
-
+const authRoutes = require('./routes/authRoutes');         // ✅ Auth module
+const claimsRoutes = require('./routes/claims');     // ✅ Claims module (for drivers)
+const agentRoutes = require('./routes/agentRoutes'); // Optional, if agents are implemented
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
 const corsOptions = {
-  origin: '*', // or specify exact origin like 'http://localhost:8081'
+  origin: '*',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
 app.use(cors(corsOptions));
-
 app.use(express.json());
 
-// Health check route
+// Health check
 app.get('/', (req, res) => {
   res.send('API is running');
 });
 
-// Ping test route for frontend
+// Ping test
 app.get('/api/ping', (req, res) => {
   console.log("🔔 Ping route hit");
   res.json({ message: 'Backend connected successfully!' });
 });
 
-// Auth module routes
-app.use('/api/auth', authRoutes); // e.g. /api/auth/signup, /api/auth/login
-app.use('/api/agents', agentRoutes);
+// Route modules
+app.use('/api/auth', authRoutes);      // /api/auth/signup, /login, /profile
+app.use('/api/claims', claimsRoutes);  // /api/claims/report, /mine
+app.use('/api/agents', agentRoutes);   // (Optional for now)
 
-// Connect to MongoDB and start server
+
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
 })
 .then(() => {
   console.log('✅ MongoDB connected');
