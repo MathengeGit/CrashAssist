@@ -80,11 +80,13 @@ You should see: Server running on http://localhost:5000
 - Using LocalTunnel:
 npx localtunnel --port 5000
 
-- or with ngrok:
-npx ngrok http 5000
 
 - You’ll get a public URL like:
 https://gentle-shirts-invite.loca.lt
+
+search on the browser:
+
+https://gentle-shirts-invite.loca.lt/api/ping and type in the password
 
 🔗 Update Frontend API Links In frontend/services/api.js:
 
