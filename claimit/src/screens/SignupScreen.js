@@ -28,7 +28,7 @@ export default function SignupScreen({ navigation }) {
   useEffect(() => {
     const fetchAgents = async () => {
       try {
-        const res = await axios.get('https://brown-poems-doubt.loca.lt/api/agents');
+        const res = await axios.get('https://pink-beers-push.loca.lt/api/agents');
         setAgents(res.data);
       } catch (err) {
         console.error('❌ Error loading agents:', err.message);
@@ -59,7 +59,7 @@ export default function SignupScreen({ navigation }) {
 
     try {
       setLoading(true);
-      const res = await axios.post('https://brown-poems-doubt.loca.lt/api/auth/signup', {
+      const res = await axios.post('https://pink-beers-push.loca.lt/api/auth/signup', {
         name,
         phone,
         email,
