@@ -4,7 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import SplashScreen from '../screens/SplashScreen'; // 👈
 import SignupScreen from '../screens/SignupScreen'; // 👈
 import LoginScreen from '../screens/LoginScreen';
-import DriverHome from '../screens/DriverHome';
+import DriverNavigator from './DriverNavigator'; // 👈 import your tab nav
 import AgentHome from '../screens/AgentHome';
 
 const Stack = createStackNavigator();
@@ -16,7 +16,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Signup" component={SignupScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="DriverHome" component={DriverHome} />
+        <Stack.Screen name="DriverHome" component={DriverNavigator} />
       <Stack.Screen name="AgentHome" component={AgentHome} />
       </Stack.Navigator>
     </NavigationContainer>
