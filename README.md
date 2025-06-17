@@ -28,16 +28,27 @@ A mobile-first system that allows **Drivers** to report road accidents and submi
 ## 📁 Project Structure
 
 insurance-system/
+
 ├── backend/ # Express.js + MongoDB backend
+
 │ ├── models/ # User, Claim schemas
+
 │ ├── routes/ # auth, claims, uploads, etc.
+
 │ ├── controllers/
+
 │ └── server.js
+
 ├── frontend/ # React Native Expo App
+
 │ ├── navigation/
+
 │ ├── screens/
+
 │ ├── components/
+
 │ ├── services/ # Axios API config
+
 │ └── App.js
 
 
@@ -54,29 +65,35 @@ npm install
 
 ### 3. Create .env file:
 PORT=5000
+
 MONGO_URI=mongodb://localhost:27017/insuranceDB
+
 JWT_SECRET=your_jwt_secret
 
 ### 4. Start backend server:
 node server.js
+
 You should see: Server running on http://localhost:5000
 
 🌍 Expose Backend API (LocalTunnel or ngrok)
-Using LocalTunnel:
+
+- Using LocalTunnel:
 npx localtunnel --port 5000
 
-or with ngrok:
+- or with ngrok:
 npx ngrok http 5000
-You’ll get a public URL like:
+
+- You’ll get a public URL like:
 https://gentle-shirts-invite.loca.lt
 
-🔗 Update Frontend API Links
-In frontend/services/api.js:
+🔗 Update Frontend API Links In frontend/services/api.js:
 
 import axios from 'axios';
 
 export default axios.create({
-  baseURL: 'https://gentle-shirts-invite.loca.lt/api'  // Update this every time tunnel changes
+  baseURL: 'https://gentle-shirts-invite.loca.lt/api' 
+  
+   // Update this every time tunnel changes
 });
 
 Also update hardcoded axios.post(...) URLs in:
@@ -85,28 +102,33 @@ SignupScreen.js
 
 LoginScreen.js
 
+---
+
 📱 Frontend Setup (React Native + Expo)
-1. Navigate to frontend:
+### 1. Navigate to frontend:
 cd frontend
 
-2. Install dependencies:
+### 2. Install dependencies:
 npm install
 npx expo install
 
-3. Start Expo:
+### 3. Start Expo:
 npx expo start
 
 Use Expo Go app on mobile to scan QR code.
+
 Or open on emulator if set up.
 
-🔐 Authentication Flow
+---
+
+### 🔐 Authentication Flow
 POST /api/auth/signup → register with role (e.g. driver)
 
 POST /api/auth/login → returns JWT
 
 JWT stored in AsyncStorage and attached to Axios headers
 
-🧪 Sample Flow (Driver)
+### 🧪 Sample Flow (Driver)
 Login
 
 Dashboard loads
@@ -133,6 +155,8 @@ Check View Claims
 
 Status history of all past reports
 
+---
+
 
 🧰 Technologies Used
 Frontend: React Native (Expo), React Navigation, Axios
@@ -146,6 +170,7 @@ Maps API: Google Maps API (planned)
 Dev Tools: LocalTunnel / Ngrok for exposing localhost
 
 ⚠️ Known Issues / Notes
+
 Tunnel links expire every restart → update api.js, SignupScreen.js, LoginScreen.js.
 
 No admin panel yet.
@@ -154,6 +179,7 @@ Role selection during signup is basic — future UI could improve.
 
 Profile editing functionality can be added later.
 
+---
 
 🧑‍💻 Authors
 Mathenge Gitahi 
