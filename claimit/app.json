@@ -8,6 +8,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "claimit",
     "userInterfaceStyle": "automatic",
+    "permissions": ["CAMERA", "MEDIA_LIBRARY"],
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
