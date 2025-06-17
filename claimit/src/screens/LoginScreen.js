@@ -42,7 +42,7 @@ export default function LoginScreen({ navigation }) {
 
     try {
       setLoading(true);
-      const res = await axios.post('https://sour-foxes-cheat.loca.lt/api/auth/login', {
+      const res = await axios.post('https://brown-poems-doubt.loca.lt/api/auth/login', {
         email,
         password,
       });
