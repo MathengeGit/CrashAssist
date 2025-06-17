@@ -183,5 +183,6 @@ Profile editing functionality can be added later.
 
 🧑‍💻 Authors
 Mathenge Gitahi 
+
 Anise Kimani
 
