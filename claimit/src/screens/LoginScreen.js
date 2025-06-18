@@ -42,7 +42,7 @@ export default function LoginScreen({ navigation }) {
 
     try {
       setLoading(true);
-      const res = await axios.post('https://pink-beers-push.loca.lt/api/auth/login', {
+      const res = await axios.post('https://clear-beers-rush.loca.lt/api/auth/login', {
         email,
         password,
       });
