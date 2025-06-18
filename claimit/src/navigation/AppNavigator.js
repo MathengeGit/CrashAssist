@@ -1,13 +1,17 @@
+// navigation/AppNavigator.js
+
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import SplashScreen from '../screens/SplashScreen'; // 👈
-import SignupScreen from '../screens/SignupScreen'; // 👈
-import LoginScreen from '../screens/LoginScreen';
-import DriverNavigator from './DriverNavigator'; // 👈 import your tab nav
-import AgentHome from '../screens/AgentHome';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-const Stack = createStackNavigator();
+import SplashScreen from '../screens/SplashScreen';
+import SignupScreen from '../screens/SignupScreen';
+import LoginScreen from '../screens/LoginScreen';
+
+import DriverRootNavigator from './DriverRootNavigator';
+import AgentHome from '../screens/AgentHome'; // Replace with AgentRootNavigator if needed
+
+const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   return (
@@ -16,8 +20,10 @@ export default function AppNavigator() {
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Signup" component={SignupScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="DriverHome" component={DriverNavigator} />
-      <Stack.Screen name="AgentHome" component={AgentHome} />
+        
+        {/* Use the updated Driver Root Navigator here */}
+        <Stack.Screen name="DriverHome" component={DriverRootNavigator} />
+        <Stack.Screen name="AgentHome" component={AgentHome} />
       </Stack.Navigator>
     </NavigationContainer>
   );
