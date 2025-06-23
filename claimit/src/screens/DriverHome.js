@@ -50,10 +50,10 @@ const DriverHome = () => {
       if (!token) throw new Error('No authentication token found');
 
       const [profileRes, claimsRes] = await Promise.all([
-        axios.get('/auth/profile', {
+        axios.get('/api/auth/profile', {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get('/claims/mine', {
+        axios.get('/api/claims/mine', {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
