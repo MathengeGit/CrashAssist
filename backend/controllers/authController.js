@@ -2,7 +2,17 @@ const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
 
 exports.signup = async (req, res) => {
-  const { name, phone, email, password, role, insuranceAgentId } = req.body;
+  const {
+    name,
+    phone,
+    email,
+    password,
+    role,
+    insuranceAgentId,
+    insuranceName,
+    numCars,
+    numberPlates,
+  } = req.body;
 
   try {
     const userExists = await User.findOne({ email });
@@ -15,7 +25,10 @@ exports.signup = async (req, res) => {
       email,
       password,
       role,
+      insuranceName: insuranceName || null,
       insuranceAgent: role === 'Driver' ? insuranceAgentId : null,
+      numCars: role === 'Driver' ? numCars : null,
+      numberPlates: role === 'Driver' ? numberPlates : [],
     });
 
     res.status(201).json({
@@ -25,6 +38,9 @@ exports.signup = async (req, res) => {
       email: user.email,
       role: user.role,
       insuranceAgent: user.insuranceAgent,
+      insuranceName: user.insuranceName,
+      numCars: user.numCars,
+      numberPlates: user.numberPlates,
       token: generateToken(user._id, user.role),
     });
   } catch (error) {
@@ -47,6 +63,9 @@ exports.login = async (req, res) => {
         email: user.email,
         role: user.role,
         insuranceAgent: user.insuranceAgent,
+        insuranceName: user.insuranceName,
+        numCars: user.numCars,
+        numberPlates: user.numberPlates,
         token: generateToken(user._id, user.role),
       });
     } else {
