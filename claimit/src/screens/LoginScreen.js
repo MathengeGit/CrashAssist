@@ -42,7 +42,7 @@ export default function LoginScreen({ navigation }) {
 
     try {
       setLoading(true);
-      const res = await axios.post('https://clear-beers-rush.loca.lt/api/auth/login', {
+      const res = await axios.post('https://claimit-backend-q4jj.onrender.com/api/auth/login', {
         email,
         password,
       });

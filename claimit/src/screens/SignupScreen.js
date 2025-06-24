@@ -28,7 +28,7 @@ export default function SignupScreen({ navigation }) {
   useEffect(() => {
     const fetchAgents = async () => {
       try {
-        const res = await axios.get('https://clear-beers-rush.loca.lt/api/agents');
+        const res = await axios.get('https://claimit-backend-q4jj.onrender.com/api/agents');
         setAgents(res.data);
       } catch (err) {
         console.error('❌ Error loading agents:', err.message);
@@ -59,7 +59,7 @@ export default function SignupScreen({ navigation }) {
 
     try {
       setLoading(true);
-      const res = await axios.post('https://clear-beers-rush.loca.lt/api/auth/signup', {
+      const res = await axios.post('https://claimit-backend-q4jj.onrender.com/api/auth/signup', {
         name,
         phone,
         email,
