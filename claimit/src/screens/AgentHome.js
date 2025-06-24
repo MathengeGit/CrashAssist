@@ -28,7 +28,7 @@ const AgentDashboard = () => {
     const fetchClaims = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const res = await axios.get('/claims', {
+        const res = await axios.get('/api/claims/agent', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setClaims(res.data.claims);
@@ -40,6 +40,15 @@ const AgentDashboard = () => {
     };
     fetchClaims();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('token');
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    } catch (err) {
+      console.error('❌ Logout failed:', err);
+    }
+  };
 
   const renderClaim = ({ item }) => (
     <TouchableOpacity
@@ -135,7 +144,7 @@ const AgentDashboard = () => {
             <Icon name="assignment" size={20} color="#94A3B8" />
             <Text style={styles.navText}>Reports</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem}>
+          <TouchableOpacity style={styles.navItem} onPress={handleLogout}>
             <Icon name="logout" size={20} color="#94A3B8" />
             <Text style={styles.navText}>Logout</Text>
           </TouchableOpacity>
