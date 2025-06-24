@@ -22,6 +22,10 @@ const claimSchema = new mongoose.Schema({
   submittedAt: {
     type: Date,
     default: Date.now
+  },
+  report: {
+  type: String,
+  default: '',
   }
 });
 

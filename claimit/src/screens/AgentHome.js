@@ -1,3 +1,5 @@
+// screens/AgentHome.js
+
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -28,7 +30,7 @@ const AgentDashboard = () => {
     const fetchClaims = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const res = await axios.get('/api/claims/agent', {
+        const res = await axios.get('https://cold-apes-slide.loca.lt/api/claims/agent', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setClaims(res.data.claims);
@@ -53,32 +55,37 @@ const AgentDashboard = () => {
   const renderClaim = ({ item }) => (
     <TouchableOpacity
       style={styles.claimCard}
-      onPress={() => navigation.navigate('ClaimDetails', { claimId: item._id })}
+      onPress={() => navigation.navigate('AgentClaimDetails', { claimId: item._id })}
     >
       <View style={styles.claimCardHeader}>
         <Text style={styles.claimTitle}>{item.driverName || 'Unnamed Driver'}</Text>
-        <Text style={[styles.claimStatus, getStatusStyle(item.status)]}>{item.status.toUpperCase()}</Text>
+        <Text style={[styles.claimStatus, getStatusStyle(item.status)]}>
+          {item.status.toUpperCase()}
+        </Text>
       </View>
-      <Text style={styles.claimDate}>Submitted: {new Date(item.submittedAt).toLocaleDateString()}</Text>
+      <Text style={styles.claimDate}>
+        Submitted: {new Date(item.submittedAt).toLocaleDateString()}
+      </Text>
     </TouchableOpacity>
   );
 
   const getStatusStyle = (status) => {
     switch (status) {
-      case 'approved': return { color: '#10B981' };
-      case 'rejected': return { color: '#EF4444' };
+      case 'approved':
+        return { color: '#10B981' };
+      case 'rejected':
+        return { color: '#EF4444' };
       case 'pending':
-      default: return { color: '#F59E0B' };
+      default:
+        return { color: '#F59E0B' };
     }
   };
 
   return (
     <SafeAreaView style={styles.safeContainer}>
-      {menuVisible && (
-        <Pressable style={styles.overlay} onPress={() => setMenuVisible(false)} />
-      )}
+      {menuVisible && <Pressable style={styles.overlay} onPress={() => setMenuVisible(false)} />}
 
-      <View style={[styles.mainWrapper, menuVisible && { opacity: 0.5 }]}> 
+      <View style={[styles.mainWrapper, menuVisible && { opacity: 0.5 }]}>
         <View style={styles.mainContainer}>
           <TouchableOpacity
             style={styles.toggleButton}
@@ -100,7 +107,7 @@ const AgentDashboard = () => {
             ) : claims.length > 0 ? (
               <FlatList
                 data={claims}
-                keyExtractor={item => item._id}
+                keyExtractor={(item) => item._id}
                 renderItem={renderClaim}
                 contentContainerStyle={styles.claimList}
               />
@@ -108,7 +115,9 @@ const AgentDashboard = () => {
               <View style={styles.emptyStateContainer}>
                 <Icon name="inbox" size={60} color="#94A3B8" />
                 <Text style={styles.emptyTitle}>No Claims Yet</Text>
-                <Text style={styles.emptySubtitle}>Claims submitted by drivers will appear here for review.</Text>
+                <Text style={styles.emptySubtitle}>
+                  Claims submitted by drivers will appear here for review.
+                </Text>
               </View>
             )}
           </ScrollView>

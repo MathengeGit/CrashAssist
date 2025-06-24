@@ -10,6 +10,7 @@ import LoginScreen from '../screens/LoginScreen';
 
 import DriverRootNavigator from './DriverRootNavigator';
 import AgentHome from '../screens/AgentHome'; // Replace with AgentRootNavigator if needed
+import AgentRootNavigator from './AgentRootNavigator';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,7 +24,7 @@ export default function AppNavigator() {
         
         {/* Use the updated Driver Root Navigator here */}
         <Stack.Screen name="DriverHome" component={DriverRootNavigator} />
-        <Stack.Screen name="AgentHome" component={AgentHome} />
+        <Stack.Screen name="AgentHome" component={AgentRootNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -56,4 +56,40 @@ router.get('/agent', authMiddleware, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+
+// Fetch a specific claim by ID
+router.get('/:id', authMiddleware, async (req, res) => {
+  try {
+    const claim = await Claim.findById(req.params.id);
+    if (!claim) {
+      return res.status(404).json({ message: 'Claim not found' });
+    }
+    res.json({ claim });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Update a claim (agent updates report/status)
+router.put('/:id', authMiddleware, async (req, res) => {
+  try {
+    const updated = await Claim.findByIdAndUpdate(
+      req.params.id,
+      {
+        report: req.body.report,
+        status: req.body.status,
+      },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: 'Claim not found' });
+    }
+
+    res.json({ message: 'Claim updated', claim: updated });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 module.exports = router;
