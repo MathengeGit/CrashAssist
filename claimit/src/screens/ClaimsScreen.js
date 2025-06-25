@@ -10,8 +10,11 @@ import {
 import axios from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const ClaimsScreen = () => {
+  const navigation = useNavigation();
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -34,20 +37,21 @@ const ClaimsScreen = () => {
   }, []);
 
   const renderItem = ({ item }) => (
+  <TouchableOpacity onPress={() => navigation.navigate('ClaimDetail', { claimId: item._id })}>
     <View style={styles.card}>
       <View style={styles.row}>
         <Icon name="place" size={22} color="#3B82F6" />
         <Text style={styles.location}>
-  {item.location && item.location.latitude && item.location.longitude
-    ? `Lat: ${item.location.latitude.toFixed(5)}, Lng: ${item.location.longitude.toFixed(5)}`
-    : 'No location data'}
-</Text>
-
+          {item.location && item.location.latitude && item.location.longitude
+            ? `Lat: ${item.location.latitude.toFixed(5)}, Lng: ${item.location.longitude.toFixed(5)}`
+            : 'No location data'}
+        </Text>
       </View>
       <View style={styles.row}>
         <Icon name="calendar-today" size={20} color="#475569" />
         <Text style={styles.text}>{new Date(item.date).toDateString()}</Text>
       </View>
+
       <View style={styles.row}>
         <Icon name="assignment" size={20} color="#475569" />
         <Text style={[styles.status, getStatusStyle(item.status)]}>
@@ -55,7 +59,8 @@ const ClaimsScreen = () => {
         </Text>
       </View>
     </View>
-  );
+  </TouchableOpacity>
+);
 
   const getStatusStyle = (status) => {
     switch (status.toLowerCase()) {
