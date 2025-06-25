@@ -74,4 +74,62 @@ router.get('/mine', authMiddleware, async (req, res) => {
   }
 });
 
+// GET /api/claims/:id - Get single claim with populated agent
+router.get('/:id', authMiddleware, async (req, res) => {
+  try {
+    const claim = await Claim.findById(req.params.id)
+      .populate('assignedAgent', 'name email');
+
+    if (!claim) {
+      return res.status(404).json({ message: 'Claim not found' });
+    }
+
+    // Check permission
+    if (claim.driverId.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Unauthorized access to this claim' });
+    }
+
+    res.json(claim);
+  } catch (err) {
+    console.error('Claim fetch error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// PUT /api/claims/:id/status - Update claim status & push to history
+router.put('/:id/status', authMiddleware, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const validStatuses = ['pending', 'approved', 'rejected'];
+
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: 'Invalid status value' });
+    }
+
+    const claim = await Claim.findById(req.params.id);
+
+    if (!claim) {
+      return res.status(404).json({ message: 'Claim not found' });
+    }
+
+    // Update current status
+    claim.status = status;
+
+    // Push new history entry
+    claim.statusHistory.push({
+      status,
+      timestamp: new Date(),
+    });
+
+    await claim.save();
+
+    res.json({ message: 'Status updated', claim });
+  } catch (err) {
+    console.error('Status update error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+
+
 module.exports = router;
