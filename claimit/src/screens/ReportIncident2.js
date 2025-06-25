@@ -5,22 +5,21 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  Platform,
   Alert,
 } from 'react-native';
 import * as Location from 'expo-location';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 const ReportIncident2 = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { imageUri } = route.params;
+  const { imageUri, photoUrls } = route.params;
 
   const [location, setLocation] = useState(null);
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -42,32 +41,35 @@ const ReportIncident2 = () => {
     }
 
     navigation.navigate('ReportIncident3', {
-      imageUri,
-      description,
-      date,
-      location,
-    });
+  imageUri: imageUri?.uri || imageUri,
+  photoUrls,
+  description,
+  date: date.toISOString(),  // safer for serialization
+  location,
+});
+
+  };
+
+  const handleConfirm = (selectedDate) => {
+    setDate(selectedDate);
+    setDatePickerVisibility(false);
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Step 2: Add Location & Details</Text>
 
-      <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePicker}>
+      <TouchableOpacity onPress={() => setDatePickerVisibility(true)} style={styles.datePicker}>
         <Text style={styles.dateText}>📅 {date.toLocaleString()}</Text>
       </TouchableOpacity>
 
-      {showDatePicker && (
-        <DateTimePicker
-          value={date}
-          mode="datetime"
-          display={Platform.OS === 'ios' ? 'inline' : 'default'}
-          onChange={(e, selectedDate) => {
-            setShowDatePicker(false);
-            if (selectedDate) setDate(selectedDate);
-          }}
-        />
-      )}
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="datetime"
+        date={date}
+        onConfirm={handleConfirm}
+        onCancel={() => setDatePickerVisibility(false)}
+      />
 
       <Text style={styles.label}>📍 Location (auto-filled)</Text>
       <Text style={styles.locationText}>
