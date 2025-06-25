@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Image
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../services/api';
@@ -16,11 +17,12 @@ const ReportIncident3 = () => {
   const route = useRoute();
 
   const {
-    imageUri,
-    location,
-    description,
-    date,
-  } = route.params;
+  photoUrls, // ✅ passed from step 2
+  location,
+  description,
+  date,
+} = route.params;
+
 
   const [otherName, setOtherName] = useState('');
   const [otherPhone, setOtherPhone] = useState('');
@@ -30,48 +32,45 @@ const ReportIncident3 = () => {
   const [showModal, setShowModal] = useState(false);
 
   const handleSubmit = async () => {
-    if (!otherName || !otherPhone || !otherPlate || !otherInsurance) {
-      Alert.alert('Missing Fields', 'Please complete all required fields.');
-      return;
-    }
+  if (!otherName || !otherPhone || !otherPlate || !otherInsurance) {
+    Alert.alert('Missing Fields', 'Please complete all required fields.');
+    return;
+  }
 
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      const formData = new FormData();
-      formData.append('photo', {
-        uri: imageUri,
-        type: 'image/jpeg',
-        name: 'accident.jpg',
-      });
-      formData.append('description', description);
-      formData.append('date', date);
-      formData.append('location', JSON.stringify(location));
-      formData.append('otherDriver', JSON.stringify({
+  try {
+    const payload = {
+      location,
+      date,
+      description,
+      photos: photoUrls.map(p => p.tempUrl || p.uri || p),
+      otherParty: {
         name: otherName,
-        phone: otherPhone,
-        plate: otherPlate,
-        insurance: otherInsurance,
-      }));
+        contact: otherPhone,
+        licensePlate: otherPlate,
+        insuranceCompany: otherInsurance,
+      },
+    };
 
-      const res = await axios.post('/claims/report', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+    const res = await axios.post('/api/claims/report', payload); // ✅ JSON payload
 
-      setShowModal(true);
-      setTimeout(() => {
-        setShowModal(false);
-        navigation.navigate('DriverHome');
-      }, 3000);
-    } catch (error) {
-      console.error(error.message);
-      Alert.alert('Error', 'Failed to submit claim. Try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    setShowModal(true);
+    setTimeout(() => {
+  setShowModal(false);
+  navigation.reset({
+    index: 0,
+    routes: [{ name: 'DriverHome' }],
+  });
+}, 3000);
+
+  } catch (error) {
+    console.error(error.message);
+    Alert.alert('Error', 'Failed to submit claim. Try again later.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -102,6 +101,21 @@ const ReportIncident3 = () => {
         value={otherInsurance}
         onChangeText={setOtherInsurance}
       />
+      {photoUrls && photoUrls.length > 0 && (
+  <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+    {photoUrls.map((photo, i) => {
+      const uri = typeof photo === 'string' ? photo : photo.tempUrl || photo.uri;
+      return (
+        <Image
+          key={i}
+          source={{ uri }}
+          style={{ width: 60, height: 60, marginRight: 10, borderRadius: 8 }}
+        />
+      );
+    })}
+  </View>
+)}
+
 
       <TouchableOpacity
         style={styles.button}
