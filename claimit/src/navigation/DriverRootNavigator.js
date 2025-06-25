@@ -15,6 +15,7 @@ export default function DriverRootNavigator() {
       <Stack.Screen name="ReportIncident1" component={ReportIncident1} />
       <Stack.Screen name="ReportIncident2" component={ReportIncident2} />
       <Stack.Screen name="ReportIncident3" component={ReportIncident3} />
+      <Stack.Screen name="ClaimDetail" component={ClaimDetailScreen} options={{ title: 'Claim Details' }} />
     </Stack.Navigator>
   );
 }
