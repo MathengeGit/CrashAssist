@@ -2,7 +2,15 @@ const mongoose = require('mongoose');
 
 const claimSchema = new mongoose.Schema({
   driverId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  location: String,
+  location: {
+  latitude: { type: Number, required: true },
+  longitude: { type: Number, required: true },
+  accuracy: Number,
+  altitude: Number,
+  heading: Number,
+  speed: Number,
+  altitudeAccuracy: Number
+},
   date: Date,
   description: String,
   photos: [String],
