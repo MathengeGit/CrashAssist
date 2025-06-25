@@ -263,7 +263,7 @@ const DriverHome = () => {
           <DashboardCard
             icon="list-alt"
             label="My Claims"
-            onPress={() => handleCardPress(() => navigation.navigate('ClaimsScreen'))}
+            onPress={() => handleCardPress(() => navigation.navigate('Claims'))}
             bgColor={isDarkMode ? '#059669' : '#10B981'}
             badgeCount={claimStats.total}
             accessibilityLabel="View my claims"
