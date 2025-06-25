@@ -6,14 +6,18 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  ScrollView,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const ReportIncident1 = () => {
   const navigation = useNavigation();
-  const [imageUri, setImageUri] = useState(null);
+  const [images, setImages] = useState([]);
 
   useEffect(() => {
     (async () => {
@@ -25,57 +29,105 @@ const ReportIncident1 = () => {
   }, []);
 
   const pickImage = async () => {
-  try {
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.7,
-      base64: true,
-    });
-
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      setImageUri(result.assets[0].uri);
+    if (images.length >= 3) {
+      Alert.alert('Limit Reached', 'You can only upload up to 3 images.');
+      return;
     }
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets?.length > 0) {
+        setImages([...images, result.assets[0]]);
+      }
+    } catch (error) {
+      console.error('Camera error:', error);
+      Alert.alert('Error', 'Could not open the camera.');
+    }
+  };
+
+  const uploadImagesToServer = async () => {
+  const formData = new FormData();
+
+  images.forEach((image, index) => {
+    formData.append('photos', {
+      uri: image.uri,
+      name: `photo_${index + 1}.jpg`,
+      type: 'image/jpeg',
+    });
+  });
+
+  try {
+    const token = await AsyncStorage.getItem('token');
+
+if (!token) {
+  Alert.alert('Authentication Error', 'You are not logged in.');
+  return;
+}
+
+const response = await axios.post(
+  'https://claimit-backend-q4jj.onrender.com/api/claims/uploadPhotos',
+  formData,
+  {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
+
+
+    return response.data.uploadedPhotoUrls;
   } catch (error) {
-    console.error('Camera error:', error);
-    Alert.alert('Error', 'Could not open the camera.');
+    console.error('Upload error:', error.message);
+    Alert.alert('Upload Failed', 'Failed to upload images. Please try again.');
+    return null;
   }
 };
 
-  const proceed = () => {
-    if (!imageUri) {
+
+  const proceed = async () => {
+    if (images.length === 0) {
       Alert.alert('Upload Required', 'Please upload at least one image.');
       return;
     }
 
-    // Proceed to next screen with imageUri passed via navigation
-    navigation.navigate('ReportIncident2', { imageUri });
+    const uploadedPhotoUrls = await uploadImagesToServer();
+
+    if (uploadedPhotoUrls) {
+      navigation.navigate('ReportIncident2', { photoUrls: uploadedPhotoUrls });
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Step 1: Upload Scene Photo 📸</Text>
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>Step 1: Upload Scene Photos 📸</Text>
 
       <TouchableOpacity style={styles.uploadBox} onPress={pickImage}>
-        {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.preview} />
-        ) : (
-          <>
-            <Icon name="camera-outline" size={40} color="#94A3B8" />
-            <Text style={styles.uploadText}>Tap to take/upload a photo</Text>
-          </>
-        )}
+        <Icon name="camera-outline" size={40} color="#94A3B8" />
+        <Text style={styles.uploadText}>Tap to take/upload a photo ({images.length}/3)</Text>
       </TouchableOpacity>
+
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+        {images.map((img, index) => (
+          <Image
+            key={index}
+            source={{ uri: img.uri }}
+            style={{ width: 100, height: 100, borderRadius: 10, marginRight: 10 }}
+          />
+        ))}
+      </View>
 
       <TouchableOpacity style={styles.button} onPress={proceed}>
         <Text style={styles.buttonText}>Continue to Location</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
-
-export default ReportIncident1;
-
-const styles = StyleSheet.create({
+    const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8FAFC',
@@ -88,7 +140,7 @@ const styles = StyleSheet.create({
     marginBottom: 25,
   },
   uploadBox: {
-    height: 250,
+    height: 200,
     backgroundColor: '#E2E8F0',
     borderRadius: 10,
     justifyContent: 'center',
@@ -96,23 +148,19 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderWidth: 2,
     borderColor: '#94A3B8',
-    marginBottom: 30,
+    marginBottom: 20,
   },
   uploadText: {
     color: '#64748B',
     fontSize: 16,
     marginTop: 10,
   },
-  preview: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 10,
-  },
   button: {
     backgroundColor: '#0F172A',
     paddingVertical: 15,
     borderRadius: 10,
     alignItems: 'center',
+    marginTop: 30,
   },
   buttonText: {
     color: '#FFFFFF',
@@ -120,3 +168,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
+export default ReportIncident1;
