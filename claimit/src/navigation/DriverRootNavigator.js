@@ -5,6 +5,7 @@ import DriverTabs from './DriverTabs';
 import ReportIncident1 from '../screens/ReportIncident1';
 import ReportIncident2 from '../screens/ReportIncident2'; 
 import ReportIncident3 from '../screens/ReportIncident3';
+import ClaimDetailScreen from '../screens/ClaimDetailScreen'; // ✅ THIS LINE FIXES THE ERROR
 
 const Stack = createNativeStackNavigator();
 
