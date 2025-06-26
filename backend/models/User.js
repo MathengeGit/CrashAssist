@@ -13,6 +13,8 @@ const userSchema = new mongoose.Schema({
     default: null,
   },
   insuranceCompany: { type: String },
+  vehicleNumber: { type: String },
+
 
 });
 

@@ -24,7 +24,9 @@ router.get('/agents', async (req, res) => {
 // Get profile
 router.get('/profile', authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findById(req.user.id)
+  .select('-password')
+  .populate('insuranceAgent', 'name email insuranceCompany');
     res.json({ user });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });

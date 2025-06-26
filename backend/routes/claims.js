@@ -47,6 +47,7 @@ router.post('/report', authMiddleware, async (req, res) => {
 
     const claim = new Claim({
       driverId: req.user.id,
+      insuranceAgent: req.user.insuranceAgent,
       location,             // { latitude, longitude }
       date,
       description,
@@ -78,7 +79,8 @@ router.get('/mine', authMiddleware, async (req, res) => {
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
     const claim = await Claim.findById(req.params.id)
-      .populate('assignedAgent', 'name email');
+  .populate('driverId', 'name email insuranceCompany insuranceAgent')
+  .populate('driverId.insuranceAgent', 'name email');
 
     if (!claim) {
       return res.status(404).json({ message: 'Claim not found' });
