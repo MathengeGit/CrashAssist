@@ -100,10 +100,13 @@ const ClaimDetailScreen = ({ route }) => {
         </>
       )}
 
-      <Text style={styles.label}>👤 Assigned Agent</Text>
-      <Text style={styles.value}>
-        {claim.assignedAgent?.name || 'Not assigned yet'}
-      </Text>
+      <Text style={styles.label}>Insurance Agent:</Text>
+<Text style={styles.value}>
+  {claim.driverId.insuranceAgent
+    ? `${claim.driverId.insuranceAgent.name} (${claim.driverId.insuranceAgent.email})`
+    : 'Not Assigned'}
+</Text>
+
     </ScrollView>
   );
 };

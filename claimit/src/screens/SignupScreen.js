@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   TextInput,
@@ -19,26 +19,13 @@ export default function SignupScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('Driver');
-  const [insuranceAgentId, setInsuranceAgentId] = useState('');
-  const [agents, setAgents] = useState([]);
+  const [insuranceCompany, setInsuranceCompany] = useState('');
+  const [vehicleNumber, setVehicleNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    const fetchAgents = async () => {
-      try {
-        const res = await axios.get('https://claimit-backend-q4jj.onrender.com/api/agents');
-        setAgents(res.data);
-      } catch (err) {
-        console.error('❌ Error loading agents:', err.message);
-      }
-    };
-
-    if (role === 'Driver') {
-      fetchAgents();
-    }
-  }, [role]);
+  const insuranceCompanies = ['APA', 'Britam', 'Jubilee', 'UAP', 'Madison'];
 
   const validateInputs = () => {
     const newErrors = {};
@@ -46,9 +33,10 @@ export default function SignupScreen({ navigation }) {
     if (!phone) newErrors.phone = 'Phone number is required';
     if (!email) newErrors.email = 'Email is required';
     if (!password) newErrors.password = 'Password is required';
-    if (role === 'Driver' && !insuranceAgentId) {
-      newErrors.insuranceAgentId = 'Please select your insurance agent';
-    }
+    if (!vehicleNumber && role === 'Driver')
+      newErrors.vehicleNumber = 'Vehicle plate is required';
+    if (!insuranceCompany && role === 'Driver')
+      newErrors.insuranceCompany = 'Please select your insurance company';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -59,22 +47,26 @@ export default function SignupScreen({ navigation }) {
 
     try {
       setLoading(true);
-      const res = await axios.post('https://claimit-backend-q4jj.onrender.com/api/auth/signup', {
-        name,
-        phone,
-        email,
-        password,
-        role,
-        insuranceAgentId: role === 'Driver' ? insuranceAgentId : null,
-      });
+      const res = await axios.post(
+        'https://claimit-backend-q4jj.onrender.com/api/auth/signup',
+        {
+          name,
+          phone,
+          email,
+          password,
+          role,
+          vehicleNumber,
+          insuranceCompany: role === 'Driver' ? insuranceCompany : null,
+        }
+      );
 
       console.log('✅ User registered:', res.data);
       setShowSuccessModal(true);
-      setLoading(false);
     } catch (err) {
       const msg = err.response?.data?.message || 'Signup failed';
       alert(msg);
       console.error('Signup error:', msg);
+    } finally {
       setLoading(false);
     }
   };
@@ -161,25 +153,39 @@ export default function SignupScreen({ navigation }) {
       {role === 'Driver' && (
         <>
           <Text style={styles.label}>
-            Select Insurance Agent <Text style={styles.required}>*</Text>
+            Vehicle Plate Number <Text style={styles.required}>*</Text>
+          </Text>
+          <TextInput
+            placeholder="e.g., KDA 123A"
+            value={vehicleNumber}
+            onChangeText={(text) => {
+              setVehicleNumber(text);
+              setErrors((prev) => ({ ...prev, vehicleNumber: '' }));
+            }}
+            style={styles.input}
+          />
+          {errors.vehicleNumber && <Text style={styles.error}>{errors.vehicleNumber}</Text>}
+
+          <Text style={styles.label}>
+            Select Insurance Company <Text style={styles.required}>*</Text>
           </Text>
           <View style={styles.pickerContainer}>
             <Picker
-              selectedValue={insuranceAgentId}
+              selectedValue={insuranceCompany}
               onValueChange={(value) => {
-                setInsuranceAgentId(value);
-                setErrors((prev) => ({ ...prev, insuranceAgentId: '' }));
+                setInsuranceCompany(value);
+                setErrors((prev) => ({ ...prev, insuranceCompany: '' }));
               }}
               style={styles.picker}
             >
-              <Picker.Item label="-- Select Agent --" value="" />
-              {agents.map((agent) => (
-                <Picker.Item key={agent._id} label={agent.email} value={agent._id} />
+              <Picker.Item label="-- Select Company --" value="" />
+              {insuranceCompanies.map((company) => (
+                <Picker.Item key={company} label={company} value={company} />
               ))}
             </Picker>
           </View>
-          {errors.insuranceAgentId && (
-            <Text style={styles.error}>{errors.insuranceAgentId}</Text>
+          {errors.insuranceCompany && (
+            <Text style={styles.error}>{errors.insuranceCompany}</Text>
           )}
         </>
       )}

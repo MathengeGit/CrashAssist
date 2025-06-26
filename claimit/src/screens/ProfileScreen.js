@@ -132,6 +132,19 @@ const ProfileScreen = () => {
             )}
           </View>
         </View>
+
+        {/* Agent display */}
+        {driver.insuranceAgent && (
+          <View style={styles.item}>
+            <Icon name="supervisor-account" size={22} color="#0F172A" style={styles.icon} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.label}>Insurance Agent</Text>
+              <Text style={styles.value}>
+                {driver.insuranceAgent.name} ({driver.insuranceAgent.email})
+              </Text>
+            </View>
+          </View>
+        )}
       </View>
 
       <TouchableOpacity
