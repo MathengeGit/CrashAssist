@@ -12,6 +12,8 @@ const userSchema = new mongoose.Schema({
     ref: 'User',
     default: null,
   },
+  insuranceCompany: { type: String },
+
 });
 
 userSchema.pre('save', async function (next) {
