@@ -15,7 +15,7 @@ import axios from '../services/api';
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 
-const INSURANCE_COMPANIES = ['APA Insurance', 'Britam', 'Jubilee', 'AAR', 'ICEA Lion'];
+const INSURANCE_COMPANIES = ['APA', 'Britam', 'Jubilee', 'AAR', 'ICEA Lion'];
 
 const ProfileScreen = () => {
   const navigation = useNavigation();

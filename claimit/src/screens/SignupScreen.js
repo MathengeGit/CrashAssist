@@ -25,7 +25,7 @@ export default function SignupScreen({ navigation }) {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const insuranceCompanies = ['APA', 'Britam', 'Jubilee', 'UAP', 'Madison'];
+  const insuranceCompanies = ['APA', 'Britam', 'Jubilee', 'AAR', 'ICEA Lion'];
 
   const validateInputs = () => {
     const newErrors = {};
