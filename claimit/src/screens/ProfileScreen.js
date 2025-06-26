@@ -13,6 +13,9 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from '../services/api';
 import { useNavigation } from '@react-navigation/native';
+import { Picker } from '@react-native-picker/picker';
+
+const INSURANCE_COMPANIES = ['APA Insurance', 'Britam', 'Jubilee', 'AAR', 'ICEA Lion'];
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -102,13 +105,33 @@ const ProfileScreen = () => {
           editable={editMode}
           onChange={(text) => setForm({ ...form, vehicleNumber: text })}
         />
-        <ProfileField
-          icon="business"
-          label="Insurance"
-          value={form.insuranceCompany}
-          editable={editMode}
-          onChange={(text) => setForm({ ...form, insuranceCompany: text })}
-        />
+
+        {/* Insurance Company Dropdown */}
+        <View style={styles.item}>
+          <Icon name="business" size={22} color="#0F172A" style={styles.icon} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>Insurance</Text>
+            {editMode ? (
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={form.insuranceCompany}
+                  onValueChange={(itemValue) =>
+                    setForm({ ...form, insuranceCompany: itemValue })
+                  }
+                >
+                  <Picker.Item label="Select your insurance" value="" />
+                  {INSURANCE_COMPANIES.map((company) => (
+                    <Picker.Item label={company} value={company} key={company} />
+                  ))}
+                </Picker>
+              </View>
+            ) : (
+              <Text style={styles.value}>
+                {form.insuranceCompany || 'Not set'}
+              </Text>
+            )}
+          </View>
+        </View>
       </View>
 
       <TouchableOpacity
@@ -189,6 +212,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#CBD5E1',
+  },
+  pickerContainer: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 8,
+    marginTop: 4,
   },
   editButton: {
     backgroundColor: '#0F172A',
