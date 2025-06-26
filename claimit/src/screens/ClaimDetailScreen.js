@@ -9,7 +9,7 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-import axios from '../../services/api';
+import axios from '../services/api';
 import MapView, { Marker } from 'react-native-maps';
 
 const ClaimDetailScreen = ({ route }) => {
