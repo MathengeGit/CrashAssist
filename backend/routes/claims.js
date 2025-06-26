@@ -3,8 +3,9 @@ const router = express.Router();
 const multer = require('multer');
 const authMiddleware = require('../middlewares/authMiddleware');
 const Claim = require('../models/Claim');
+const User = require('../models/User');
 
-// Multer setup for memory storage (can be replaced with Cloudinary or disk later)
+// Multer setup for memory storage
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
@@ -12,21 +13,19 @@ router.get('/', (req, res) => {
   res.send('Claims route is live');
 });
 
-
-// POST /api/claims/uploadPhotos - Accept up to 3 images
+// Upload photos
 router.post('/uploadPhotos', authMiddleware, upload.array('photos', 3), async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: 'No images uploaded' });
     }
 
-    // In a real setup, you'd upload to Cloudinary/S3 here and get URLs
-    const uploadedPhotoUrls = req.files.map((file, index) => ({
+    const uploadedPhotoUrls = req.files.map((file) => ({
       filename: file.originalname,
       mimetype: file.mimetype,
       size: file.size,
-      buffer: file.buffer.toString('base64'), // Optional: you can also just store the buffer
-      tempUrl: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`, // Used by frontend for previews
+      buffer: file.buffer.toString('base64'),
+      tempUrl: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
     }));
 
     res.status(200).json({ message: 'Photos uploaded', uploadedPhotoUrls });
@@ -36,7 +35,7 @@ router.post('/uploadPhotos', authMiddleware, upload.array('photos', 3), async (r
   }
 });
 
-// POST /api/claims/report - Save the claim after uploading images
+// Submit a claim
 router.post('/report', authMiddleware, async (req, res) => {
   try {
     const { location, date, description, photos, otherParty } = req.body;
@@ -45,14 +44,17 @@ router.post('/report', authMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
+    // Get full user data to access their agent
+    const user = await User.findById(req.user.id);
+
     const claim = new Claim({
       driverId: req.user.id,
-      insuranceAgent: req.user.insuranceAgent,
-      location,             // { latitude, longitude }
+      assignedAgent: user.insuranceAgent || null,
+      location,
       date,
       description,
-      photos,               // Array of image URLs
-      otherParty,           // Object with name, contact, licensePlate, etc.
+      photos,
+      otherParty,
       status: 'pending',
     });
 
@@ -64,8 +66,7 @@ router.post('/report', authMiddleware, async (req, res) => {
   }
 });
 
-
-// GET /api/claims/mine - Get all claims by the logged-in driver
+// Get claims for current driver
 router.get('/mine', authMiddleware, async (req, res) => {
   try {
     const claims = await Claim.find({ driverId: req.user.id }).sort({ date: -1 });
@@ -75,19 +76,25 @@ router.get('/mine', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/claims/:id - Get single claim with populated agent
+// Get single claim by ID
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
     const claim = await Claim.findById(req.params.id)
-  .populate('driverId', 'name email insuranceCompany insuranceAgent')
-  .populate('driverId.insuranceAgent', 'name email');
+  .populate('driverId', 'name email insuranceCompany')
+  .populate('assignedAgent', 'name email');
 
     if (!claim) {
       return res.status(404).json({ message: 'Claim not found' });
     }
 
-    // Check permission
-    if (claim.driverId.toString() !== req.user.id) {
+    const isDriver = req.user.role === 'Driver';
+const isAgent = req.user.role === 'InsuranceAgent';
+
+const canAccess =
+  (isDriver && claim.driverId._id.toString() === req.user.id) ||
+  (isAgent && claim.assignedAgent && claim.assignedAgent._id.toString() === req.user.id);
+
+    if (!canAccess) {
       return res.status(403).json({ message: 'Unauthorized access to this claim' });
     }
 
@@ -98,7 +105,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// PUT /api/claims/:id/status - Update claim status & push to history
+// Update claim status
 router.put('/:id/status', authMiddleware, async (req, res) => {
   try {
     const { status } = req.body;
@@ -109,29 +116,19 @@ router.put('/:id/status', authMiddleware, async (req, res) => {
     }
 
     const claim = await Claim.findById(req.params.id);
-
     if (!claim) {
       return res.status(404).json({ message: 'Claim not found' });
     }
 
-    // Update current status
     claim.status = status;
-
-    // Push new history entry
-    claim.statusHistory.push({
-      status,
-      timestamp: new Date(),
-    });
+    claim.statusHistory.push({ status, timestamp: new Date() });
 
     await claim.save();
-
     res.json({ message: 'Status updated', claim });
   } catch (err) {
     console.error('Status update error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
-
-
 
 module.exports = router;
