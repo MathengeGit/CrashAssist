@@ -1,9 +1,37 @@
+console.log("✅ claims.js loaded");
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middlewares/authMiddleware');
 const User = require('../models/User');
 const Claim = require('../models/Claim');
 const claimController = require('../controllers/claimController');
+
+// Get claims for agent's insurance company
+router.get('/agent', authMiddleware, async (req, res) => {
+  console.log('✅ /agent route hit by', req.user?.email);
+  try {
+    const agent = await User.findById(req.user.id);
+
+    if (agent.role !== 'InsuranceAgent') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const claims = await Claim.find({ insuranceName: agent.insuranceName }).sort({ date: -1 });
+    res.json({ claims });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Get driver's claims
+router.get('/mine', authMiddleware, async (req, res) => {
+  try {
+    const claims = await Claim.find({ driverId: req.user.id }).sort({ date: -1 });
+    res.json({ claims });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
 
 // Report new claim
 router.post('/report', authMiddleware, async (req, res) => {
@@ -30,41 +58,20 @@ router.post('/report', authMiddleware, async (req, res) => {
   }
 });
 
-
-// Get driver's claims
-router.get('/mine', authMiddleware, async (req, res) => {
-  try {
-    const claims = await Claim.find({ driverId: req.user.id }).sort({ date: -1 });
-    res.json({ claims });
-  } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
-  }
-});
-
-// Get claims for agent's insurance company
-router.get('/agent', authMiddleware, async (req, res) => {
+// Get only claims that have been processed (i.e. have agent reports)
+router.get('/agent/reports', authMiddleware, async (req, res) => {
   try {
     const agent = await User.findById(req.user.id);
-
     if (agent.role !== 'InsuranceAgent') {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const claims = await Claim.find({ insuranceName: agent.insuranceName }).sort({ date: -1 });
-    res.json({ claims });
-  } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
-  }
-});
+    const claims = await Claim.find({
+      insuranceName: agent.insuranceName,
+      agentReport: { $exists: true, $ne: '' }  // Only claims with agent reports
+    }).sort({ agentReportDate: -1 });
 
-// Fetch a specific claim by ID
-router.get('/:id', authMiddleware, async (req, res) => {
-  try {
-    const claim = await Claim.findById(req.params.id);
-    if (!claim) {
-      return res.status(404).json({ message: 'Claim not found' });
-    }
-    res.json({ claim });
+    res.json({ claims });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
@@ -74,19 +81,34 @@ router.get('/:id', authMiddleware, async (req, res) => {
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const updated = await Claim.findByIdAndUpdate(
-      req.params.id,
-      {
-        report: req.body.report,
-        status: req.body.status,
-      },
-      { new: true }
-    );
+  req.params.id,
+  {
+    agentReport: req.body.report,
+    agentReportDate: new Date(),
+    status: req.body.status,
+  },
+  { new: true }
+);
 
     if (!updated) {
       return res.status(404).json({ message: 'Claim not found' });
     }
 
     res.json({ message: 'Claim updated', claim: updated });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Fetch a specific claim by ID
+router.get('/:id', authMiddleware, async (req, res) => {
+  console.log('Matched dynamic ID route with param:', req.params.id);
+  try {
+    const claim = await Claim.findById(req.params.id);
+    if (!claim) {
+      return res.status(404).json({ message: 'Claim not found' });
+    }
+    res.json({ claim });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }

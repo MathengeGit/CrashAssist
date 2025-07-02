@@ -14,7 +14,7 @@ import {
   Dimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from '../services/api';
+import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 
@@ -30,7 +30,7 @@ const AgentDashboard = () => {
     const fetchClaims = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const res = await axios.get('https://cold-apes-slide.loca.lt/api/claims/agent', {
+        const res = await axios.get('https://metal-seals-like.loca.lt/api/claims/agent', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setClaims(res.data.claims);
@@ -123,15 +123,15 @@ const AgentDashboard = () => {
           </ScrollView>
 
           <View style={styles.bottomPanel}>
-            <TouchableOpacity style={styles.bottomButton}>
+            <TouchableOpacity style={styles.bottomButton} onPress={() => navigation.navigate('AgentMessages')}>
               <Icon name="notifications" size={22} color="#1E293B" />
-              <Text style={styles.bottomLabel}>Alerts</Text>
+              <Text style={styles.bottomLabel}>Messages</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.bottomButton}>
+            <TouchableOpacity style={styles.bottomButton} onPress={() => navigation.navigate('AgentAnalytics')}>
               <Icon name="assessment" size={22} color="#1E293B" />
               <Text style={styles.bottomLabel}>Analytics</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.bottomButton}>
+            <TouchableOpacity style={styles.bottomButton} onPress={() => navigation.navigate('AgentSettings')}>
               <Icon name="settings" size={22} color="#1E293B" />
               <Text style={styles.bottomLabel}>Settings</Text>
             </TouchableOpacity>
@@ -145,14 +145,17 @@ const AgentDashboard = () => {
             <Icon name="close" size={26} color="#CBD5E1" />
           </TouchableOpacity>
           <Text style={styles.sidebarHeader}>Agent Menu</Text>
-          <TouchableOpacity style={styles.navItem}>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AgentHome')}>
             <Icon name="dashboard" size={20} color="#94A3B8" />
             <Text style={styles.navText}>Dashboard</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem}>
-            <Icon name="assignment" size={20} color="#94A3B8" />
-            <Text style={styles.navText}>Reports</Text>
-          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => {
+  setMenuVisible(false);
+  navigation.navigate('AgentReports');
+}}>
+  <Icon name="assignment" size={20} color="#94A3B8" />
+  <Text style={styles.navText}>Reports</Text>
+</TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={handleLogout}>
             <Icon name="logout" size={20} color="#94A3B8" />
             <Text style={styles.navText}>Logout</Text>

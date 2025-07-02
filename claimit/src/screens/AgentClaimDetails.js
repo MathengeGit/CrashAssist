@@ -22,7 +22,7 @@ const AgentClaimDetails = () => {
     const fetchClaim = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const res = await axios.get(`https://cold-apes-slide.loca.lt/api/claims/${claimId}`, {
+        const res = await axios.get(`https://metal-seals-like.loca.lt/api/claims/${claimId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setClaim(res.data.claim);
@@ -41,7 +41,7 @@ const AgentClaimDetails = () => {
   const handleSubmit = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      await axios.put(`https://cold-apes-slide.loca.lt/api/claims/${claimId}`, { report, status }, {
+      await axios.put(`https://metal-seals-like.loca.lt/api/claims/${claimId}`, { report, status }, {
         headers: { Authorization: `Bearer ${token}` },
       });
       Alert.alert('✅ Success', 'Claim updated successfully.');

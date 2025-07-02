@@ -23,9 +23,12 @@ const claimSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  report: {
+  agentReport: {
   type: String,
-  default: '',
+  default: ''
+  },
+  agentReportDate: {
+  type: Date
   }
 });
 
