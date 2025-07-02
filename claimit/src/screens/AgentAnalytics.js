@@ -11,7 +11,7 @@ const AgentAnalytics = () => {
     const fetchAnalytics = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const res = await axios.get('https://metal-seals-like.loca.lt/api/analytics/summary', {
+        const res = await axios.get('https://claimit-backend-q4jj.onrender.com/api/analytics/summary', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setData(res.data);

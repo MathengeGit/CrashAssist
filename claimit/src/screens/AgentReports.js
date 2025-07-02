@@ -11,7 +11,7 @@ const AgentReports = () => {
     const fetchReports = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const res = await axios.get('https://metal-seals-like.loca.lt/api/claims/agent/reports', {
+        const res = await axios.get('https://claimit-backend-q4jj.onrender.com/api/claims/agent/reports', {
           headers: { Authorization: `Bearer ${token}` },
         });
         const submittedReports = res.data.claims.filter(claim => claim.agentReport);

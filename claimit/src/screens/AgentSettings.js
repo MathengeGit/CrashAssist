@@ -13,7 +13,7 @@ const AgentSettings = () => {
     const fetchProfile = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const res = await axios.get('https://metal-seals-like.loca.lt/api/auth/me', {
+        const res = await axios.get('https://claimit-backend-q4jj.onrender.com/api/auth/me', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setProfile(res.data.user);
@@ -36,7 +36,7 @@ const AgentSettings = () => {
   const handleSave = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      await axios.put('https://metal-seals-like.loca.lt/api/auth/update-profile', form, {
+      await axios.put('https://claimit-backend-q4jj.onrender.com/api/auth/update-profile', form, {
         headers: { Authorization: `Bearer ${token}` }
       });
       Alert.alert('Success', 'Profile updated.');

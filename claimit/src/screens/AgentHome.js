@@ -30,7 +30,7 @@ const AgentDashboard = () => {
     const fetchClaims = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const res = await axios.get('https://metal-seals-like.loca.lt/api/claims/agent', {
+        const res = await axios.get('https://claimit-backend-q4jj.onrender.com/api/claims/agent', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setClaims(res.data.claims);

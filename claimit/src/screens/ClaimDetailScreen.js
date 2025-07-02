@@ -9,7 +9,7 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-import axios from '../services/api';
+import axios from 'axios';
 import MapView, { Marker } from 'react-native-maps';
 
 const ClaimDetailScreen = ({ route }) => {
@@ -20,7 +20,7 @@ const ClaimDetailScreen = ({ route }) => {
   useEffect(() => {
     const fetchClaimDetail = async () => {
       try {
-        const res = await axios.get(`/api/claims/${claimId}`);
+        const res = await axios.get(`https://claimit-backend-q4jj.onrender.com/api/claims/${claimId}`);
         setClaim(res.data);
       } catch (error) {
         console.error('Error fetching claim detail:', error);

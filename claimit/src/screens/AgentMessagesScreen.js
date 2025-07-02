@@ -14,7 +14,7 @@ const AgentMessagesScreen = () => {
   useEffect(() => {
     const fetchDrivers = async () => {
       const token = await AsyncStorage.getItem('token');
-      const res = await axios.get('https://metal-seals-like.loca.lt/api/messages/drivers/list', {
+      const res = await axios.get('https://claimit-backend-q4jj.onrender.com/api/messages/drivers/list', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setDrivers(res.data.drivers);

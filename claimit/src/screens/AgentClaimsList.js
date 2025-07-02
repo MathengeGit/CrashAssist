@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
-import axios from '../services/api';
+import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 
@@ -19,7 +19,7 @@ const AgentClaimsList = () => {
       return;
     }
 
-    const res = await axios.get('https://metal-seals-like.loca.lt/api/claims/agent', {
+    const res = await axios.get('https://claimit-backend-q4jj.onrender.com/api/claims/agent', {
       headers: {
         Authorization: `Bearer ${token}`,
       },

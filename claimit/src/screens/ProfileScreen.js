@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from '../services/api';
+import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 
@@ -27,7 +27,7 @@ const ProfileScreen = () => {
   const fetchProfile = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const res = await axios.get('/api/auth/profile', {
+      const res = await axios.get('https://claimit-backend-q4jj.onrender.com/api/auth/profile', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setDriver(res.data.user);
@@ -42,7 +42,7 @@ const ProfileScreen = () => {
   const handleSave = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const res = await axios.put('/api/auth/profile', form, {
+      const res = await axios.put('https://claimit-backend-q4jj.onrender.com/api/auth/profile', form, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setDriver(res.data.user);

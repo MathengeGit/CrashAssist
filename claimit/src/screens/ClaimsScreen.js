@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   FlatList,
 } from 'react-native';
-import axios from '../services/api';
+import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { TouchableOpacity } from 'react-native';
@@ -21,7 +21,7 @@ const ClaimsScreen = () => {
   const fetchClaims = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const res = await axios.get('/api/claims/mine', {
+      const res = await axios.get('https://claimit-backend-q4jj.onrender.com/api/claims/mine', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setClaims(res.data.claims || []);

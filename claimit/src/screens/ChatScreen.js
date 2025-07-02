@@ -14,7 +14,7 @@ const ChatScreen = () => {
   useEffect(() => {
     const fetchMessages = async () => {
       const token = await AsyncStorage.getItem('token');
-      const res = await axios.get(`https://metal-seals-like.loca.lt/api/messages/${driverId}`, {
+      const res = await axios.get(`https://claimit-backend-q4jj.onrender.com/api/messages/${driverId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMessages(res.data.messages);
@@ -25,7 +25,7 @@ const ChatScreen = () => {
   const sendMessage = async () => {
     const token = await AsyncStorage.getItem('token');
     await axios.post(
-      'https://metal-seals-like.loca.lt/api/messages',
+      'https://claimit-backend-q4jj.onrender.com/api/messages',
       { receiverId: driverId, text: newMsg },
       { headers: { Authorization: `Bearer ${token}` } }
     );
