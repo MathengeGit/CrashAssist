@@ -7,15 +7,27 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['Driver', 'InsuranceAgent'], required: true },
+
   insuranceAgent: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     default: null,
   },
-  insuranceCompany: { type: String },
-  vehicleNumber: { type: String },
 
+  insuranceName: {
+    type: String,
+    default: null,
+  },
 
+  numCars: {
+    type: Number,
+    default: null,
+  },
+
+  numberPlates: {
+    type: [String],
+    default: [],
+  },
 });
 
 userSchema.pre('save', async function (next) {

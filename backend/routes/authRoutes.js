@@ -45,5 +45,15 @@ router.put('/profile', authMiddleware, async (req, res) => {
   }
 });
 
+router.put('/update-profile', authMiddleware, async (req, res) => {
+  try {
+    const updates = { name: req.body.name, phone: req.body.phone };
+    const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true });
+    res.json({ user });
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating profile' });
+  }
+});
+
 
 module.exports = router;

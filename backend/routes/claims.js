@@ -1,9 +1,11 @@
+console.log("✅ claims.js loaded");
+
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const authMiddleware = require('../middlewares/authMiddleware');
-const Claim = require('../models/Claim');
 const User = require('../models/User');
+const Claim = require('../models/Claim');
 
 // Multer setup for memory storage
 const storage = multer.memoryStorage();
@@ -35,7 +37,7 @@ router.post('/uploadPhotos', authMiddleware, upload.array('photos', 3), async (r
   }
 });
 
-// Submit a claim
+// Report new claim
 router.post('/report', authMiddleware, async (req, res) => {
   try {
     const { location, date, description, photos, otherParty } = req.body;
@@ -44,11 +46,12 @@ router.post('/report', authMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    // Get full user data to access their agent
     const user = await User.findById(req.user.id);
 
     const claim = new Claim({
-      driverId: req.user.id,
+      driverId: user._id,
+      driverName: user.name,
+      insuranceName: user.insuranceName,
       assignedAgent: user.insuranceAgent || null,
       location,
       date,
@@ -60,6 +63,23 @@ router.post('/report', authMiddleware, async (req, res) => {
 
     await claim.save();
     res.status(201).json({ message: 'Claim submitted successfully', claim });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Get claims for agent's insurance company
+router.get('/agent', authMiddleware, async (req, res) => {
+  console.log('✅ /agent route hit by', req.user?.email);
+  try {
+    const agent = await User.findById(req.user.id);
+
+    if (agent.role !== 'InsuranceAgent') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const claims = await Claim.find({ insuranceName: agent.insuranceName }).sort({ date: -1 });
+    res.json({ claims });
   } catch (err) {
     console.error('Report error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -76,23 +96,23 @@ router.get('/mine', authMiddleware, async (req, res) => {
   }
 });
 
-// Get single claim by ID
-router.get('/:id', authMiddleware, async (req, res) => {
+// Get single claim by ID (with access control)
+router.get('/view/:id', authMiddleware, async (req, res) => {
   try {
     const claim = await Claim.findById(req.params.id)
-  .populate('driverId', 'name email insuranceCompany')
-  .populate('assignedAgent', 'name email');
+      .populate('driverId', 'name email insuranceCompany')
+      .populate('assignedAgent', 'name email');
 
     if (!claim) {
       return res.status(404).json({ message: 'Claim not found' });
     }
 
     const isDriver = req.user.role === 'Driver';
-const isAgent = req.user.role === 'InsuranceAgent';
+    const isAgent = req.user.role === 'InsuranceAgent';
 
-const canAccess =
-  (isDriver && claim.driverId._id.toString() === req.user.id) ||
-  (isAgent && claim.assignedAgent && claim.assignedAgent._id.toString() === req.user.id);
+    const canAccess =
+      (isDriver && claim.driverId._id.toString() === req.user.id) ||
+      (isAgent && claim.assignedAgent && claim.assignedAgent._id.toString() === req.user.id);
 
     if (!canAccess) {
       return res.status(403).json({ message: 'Unauthorized access to this claim' });
@@ -127,6 +147,48 @@ router.put('/:id/status', authMiddleware, async (req, res) => {
     res.json({ message: 'Status updated', claim });
   } catch (err) {
     console.error('Status update error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Get only claims that have been processed (i.e. have agent reports)
+router.get('/agent/reports', authMiddleware, async (req, res) => {
+  try {
+    const agent = await User.findById(req.user.id);
+    if (agent.role !== 'InsuranceAgent') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const claims = await Claim.find({
+      insuranceName: agent.insuranceName,
+      agentReport: { $exists: true, $ne: '' },
+    }).sort({ agentReportDate: -1 });
+
+    res.json({ claims });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Update a claim (agent updates report/status)
+router.put('/:id', authMiddleware, async (req, res) => {
+  try {
+    const updated = await Claim.findByIdAndUpdate(
+      req.params.id,
+      {
+        agentReport: req.body.report,
+        agentReportDate: new Date(),
+        status: req.body.status,
+      },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: 'Claim not found' });
+    }
+
+    res.json({ message: 'Claim updated', claim: updated });
+  } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });

@@ -8,8 +8,10 @@ exports.signup = async (req, res) => {
     email,
     password,
     role,
-    vehicleNumber,
-    insuranceCompany,
+    insuranceAgentId,
+    insuranceName,
+    numCars,
+    numberPlates,
   } = req.body;
 
   try {
@@ -17,38 +19,16 @@ exports.signup = async (req, res) => {
     if (userExists)
       return res.status(400).json({ message: 'User already exists' });
 
-    let insuranceAgent = null;
-
-    if (role === 'Driver') {
-      if (!insuranceCompany) {
-        return res.status(400).json({ message: 'Insurance company is required' });
-      }
-
-      // Find a random agent in that company
-      const agents = await User.find({
-        role: 'InsuranceAgent',
-        insuranceCompany,
-      });
-
-      if (!agents.length) {
-        return res.status(400).json({
-          message: `No available agents for ${insuranceCompany}`,
-        });
-      }
-
-      // Pick the first one for simplicity (or randomize)
-      insuranceAgent = agents[0]._id;
-    }
-
     const user = await User.create({
       name,
       phone,
       email,
       password,
       role,
-      vehicleNumber,
-      insuranceCompany,
-      insuranceAgent: insuranceAgent || null,
+      insuranceName: insuranceName || null,
+      insuranceAgent: role === 'Driver' ? insuranceAgentId : null,
+      numCars: role === 'Driver' ? numCars : null,
+      numberPlates: role === 'Driver' ? numberPlates : [],
     });
 
     res.status(201).json({
@@ -57,9 +37,10 @@ exports.signup = async (req, res) => {
       phone: user.phone,
       email: user.email,
       role: user.role,
-      vehicleNumber: user.vehicleNumber,
-      insuranceCompany: user.insuranceCompany,
       insuranceAgent: user.insuranceAgent,
+      insuranceName: user.insuranceName,
+      numCars: user.numCars,
+      numberPlates: user.numberPlates,
       token: generateToken(user._id, user.role),
     });
   } catch (error) {
@@ -67,7 +48,6 @@ exports.signup = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 exports.login = async (req, res) => {
   const { email, password } = req.body;
@@ -82,9 +62,10 @@ exports.login = async (req, res) => {
         phone: user.phone,
         email: user.email,
         role: user.role,
-        vehicleNumber: user.vehicleNumber,
         insuranceAgent: user.insuranceAgent,
-        insuranceCompany: user.insuranceCompany,
+        insuranceName: user.insuranceName,
+        numCars: user.numCars,
+        numberPlates: user.numberPlates,
         token: generateToken(user._id, user.role),
       });
     } else {
