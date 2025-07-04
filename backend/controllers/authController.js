@@ -15,21 +15,32 @@ exports.signup = async (req, res) => {
   } = req.body;
 
   try {
-    const userExists = await User.findOne({ email });
-    if (userExists)
-      return res.status(400).json({ message: 'User already exists' });
+    // Basic validation
+    if (!name || !email || !password || !phone || !role || !insuranceName) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
 
-    const user = await User.create({
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    let newUser = {
       name,
       phone,
       email,
       password,
       role,
-      insuranceName: insuranceName || null,
-      insuranceAgent: role === 'Driver' ? insuranceAgentId : null,
-      numCars: role === 'Driver' ? numCars : null,
-      numberPlates: role === 'Driver' ? numberPlates : [],
-    });
+      insuranceName,
+    };
+
+    if (role === 'Driver') {
+      newUser.insuranceAgent = insuranceAgentId || null;
+      newUser.numCars = Number(numCars) || 0;
+      newUser.numberPlates = Array.isArray(numberPlates) ? numberPlates : [];
+    }
+
+    const user = await User.create(newUser);
 
     res.status(201).json({
       _id: user._id,
@@ -43,35 +54,7 @@ exports.signup = async (req, res) => {
       numberPlates: user.numberPlates,
       token: generateToken(user._id, user.role),
     });
-  } catch (error) {
-    console.error('Signup Error:', error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-exports.login = async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const user = await User.findOne({ email });
-
-    if (user && (await user.matchPassword(password))) {
-      res.json({
-        _id: user._id,
-        name: user.name,
-        phone: user.phone,
-        email: user.email,
-        role: user.role,
-        insuranceAgent: user.insuranceAgent,
-        insuranceName: user.insuranceName,
-        numCars: user.numCars,
-        numberPlates: user.numberPlates,
-        token: generateToken(user._id, user.role),
-      });
-    } else {
-      res.status(401).json({ message: 'Invalid credentials' });
-    }
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: 'Signup failed', error: err.message });
   }
 };
