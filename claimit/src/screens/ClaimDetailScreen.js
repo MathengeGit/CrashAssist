@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import MapView, { Marker } from 'react-native-maps';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ClaimDetailScreen = ({ route }) => {
   const { claimId } = route.params;
@@ -20,7 +21,17 @@ const ClaimDetailScreen = ({ route }) => {
   useEffect(() => {
     const fetchClaimDetail = async () => {
       try {
-        const res = await axios.get(`https://claimit-backend-q4jj.onrender.com/api/claims/${claimId}`);
+        const token = await AsyncStorage.getItem('token');
+
+        const res = await axios.get(
+          `https://claimit-backend-q4jj.onrender.com/api/claims/view/${claimId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
         setClaim(res.data);
       } catch (error) {
         console.error('Error fetching claim detail:', error);
@@ -100,13 +111,12 @@ const ClaimDetailScreen = ({ route }) => {
         </>
       )}
 
-      <Text style={styles.label}>Insurance Agent:</Text>
-<Text style={styles.value}>
-  {claim.assignedAgent
-  ? `${claim.assignedAgent.name} (${claim.assignedAgent.email})`
-  : 'Not Assigned'}
-</Text>
-
+      <Text style={styles.label}>Insurance Agent</Text>
+      <Text style={styles.value}>
+        {claim.assignedAgent && claim.assignedAgent.name
+          ? `${claim.assignedAgent.name} (${claim.assignedAgent.email})`
+          : 'Not Assigned'}
+      </Text>
     </ScrollView>
   );
 };
