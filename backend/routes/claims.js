@@ -6,6 +6,7 @@ const multer = require('multer');
 const authMiddleware = require('../middlewares/authMiddleware');
 const User = require('../models/User');
 const Claim = require('../models/Claim');
+const adminMiddleware = require('../middlewares/adminMiddleware');
 
 // Multer setup for memory storage
 const storage = multer.memoryStorage();
@@ -189,6 +190,29 @@ router.put('/:id', authMiddleware, async (req, res) => {
 
     res.json({ message: 'Claim updated', claim: updated });
   } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+router.put('/:id/reassign', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { newAgentId } = req.body;
+
+    const newAgent = await User.findById(newAgentId);
+    if (!newAgent || newAgent.role !== 'InsuranceAgent') {
+      return res.status(400).json({ message: 'Invalid agent ID' });
+    }
+
+    const claim = await Claim.findById(req.params.id);
+    if (!claim) {
+      return res.status(404).json({ message: 'Claim not found' });
+    }
+
+    claim.assignedAgent = newAgentId;
+    await claim.save();
+
+    res.json({ message: 'Agent reassigned successfully', claim });
+  } catch (err) {
+    console.error('Reassignment error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
