@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
   phone: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ['Driver', 'InsuranceAgent'], required: true },
+  role: { type: String, enum: ['Driver', 'InsuranceAgent', 'Admin'], required: true },
 
   insuranceAgent: {
     type: mongoose.Schema.Types.ObjectId,
@@ -20,9 +20,16 @@ const userSchema = new mongoose.Schema({
   },
 
   numCars: {
-    type: Number,
-    default: null,
+  type: Number,
+  default: null,
+  validate: {
+    validator: function (value) {
+      return value === null || value >= 0;
+    },
+    message: 'Number of cars must be non-negative',
   },
+},
+
 
   numberPlates: {
     type: [String],
