@@ -6,7 +6,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   ActivityIndicator,
   FlatList,
   SafeAreaView,
@@ -94,7 +93,7 @@ const AgentDashboard = () => {
             <Icon name={menuVisible ? 'close' : 'menu'} size={28} color="#1E293B" />
           </TouchableOpacity>
 
-          <ScrollView>
+          
             <View style={styles.headerCard}>
               <Text style={styles.headerText}>Insurance Agent Dashboard</Text>
               <Text style={styles.subText}>Monitor, assess, and resolve claim cases</Text>
@@ -120,7 +119,7 @@ const AgentDashboard = () => {
                 </Text>
               </View>
             )}
-          </ScrollView>
+          
 
           <View style={styles.bottomPanel}>
             <TouchableOpacity style={styles.bottomButton} onPress={() => navigation.navigate('AgentMessages')}>
