@@ -8,7 +8,9 @@ const authMiddleware = require('../middlewares/authMiddleware');
 router.post('/signup', signup);
 
 // Login
-router.post('/signup', signup); // ✅ without parentheses
+// Corrected Login route
+router.post('/login', login);
+ // ✅ without parentheses
 
 
 // Get all insurance agents
