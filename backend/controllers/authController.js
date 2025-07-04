@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
+const bcrypt = require('bcryptjs');
 
 exports.signup = async (req, res) => {
   const {
@@ -20,16 +21,21 @@ exports.signup = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
+    // Check if user already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    let newUser = {
+    // ✅ Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Prepare user object
+    const newUser = {
       name,
       phone,
       email,
-      password,
+      password: hashedPassword,
       role,
       insuranceName,
     };
@@ -40,8 +46,10 @@ exports.signup = async (req, res) => {
       newUser.numberPlates = Array.isArray(numberPlates) ? numberPlates : [];
     }
 
+    // Save to DB
     const user = await User.create(newUser);
 
+    // Respond
     res.status(201).json({
       _id: user._id,
       name: user.name,
@@ -54,7 +62,39 @@ exports.signup = async (req, res) => {
       numberPlates: user.numberPlates,
       token: generateToken(user._id, user.role),
     });
-  } catch (err) {
-    res.status(500).json({ message: 'Signup failed', error: err.message });
+  } catch (error) {
+    console.error('Signup Error:', error);
+    res.status(500).json({ message: 'Signup failed', error: error.message });
+  }
+};
+
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+
+    // Ensure user exists and compare hashed password
+    const isMatch = user && (await bcrypt.compare(password, user.password));
+
+    if (isMatch) {
+      res.json({
+        _id: user._id,
+        name: user.name,
+        phone: user.phone,
+        email: user.email,
+        role: user.role,
+        insuranceAgent: user.insuranceAgent,
+        insuranceName: user.insuranceName,
+        numCars: user.numCars,
+        numberPlates: user.numberPlates,
+        token: generateToken(user._id, user.role),
+      });
+    } else {
+      res.status(401).json({ message: 'Invalid credentials' });
+    }
+  } catch (error) {
+    console.error('Login Error:', error);
+    res.status(500).json({ message: 'Login failed', error: error.message });
   }
 };
