@@ -49,7 +49,7 @@ export default function SignupScreen({ navigation }) {
 
     try {
       setLoading(true);
-      const res = await axios.post('https://metal-seals-like.loca.lt/api/auth/signup', {
+      const res = await axios.post('https://claimit-backend-q4jj.onrender.com/api/auth/signup', {
         name,
         phone,
         email,
