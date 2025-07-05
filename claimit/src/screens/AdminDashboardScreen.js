@@ -8,10 +8,11 @@ import {
   ActivityIndicator,
   Modal,
   Pressable,
-  Picker,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { Picker } from '@react-native-picker/picker';
+
 
 const AdminDashboard = () => {
   const [claims, setClaims] = useState([]);
@@ -123,32 +124,42 @@ const AdminDashboard = () => {
       )}
 
       <Modal
-        visible={modalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
+  visible={modalVisible}
+  transparent={true}
+  animationType="slide"
+  onRequestClose={() => setModalVisible(false)}
+>
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContent}>
+      <Text style={styles.modalTitle}>Reassign Agent</Text>
+
+      <Picker
+        selectedValue={newAgentId}
+        onValueChange={(itemValue) => setNewAgentId(itemValue)}
+        style={{ height: 50, width: '100%' }}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Reassign Agent</Text>
-            <Picker
-              selectedValue={newAgentId}
-              style={{ height: 50, width: '100%' }}
-              onValueChange={(itemValue) => setNewAgentId(itemValue)}
-            >
-              {availableAgents.map(agent => (
-                <Picker.Item key={agent._id} label={`${agent.name} (${agent.email})`} value={agent._id} />
-              ))}
-            </Picker>
-            <Pressable style={styles.modalButton} onPress={handleReassign}>
-              <Text style={styles.modalButtonText}>Confirm</Text>
-            </Pressable>
-            <Pressable style={[styles.modalButton, { backgroundColor: '#94A3B8' }]} onPress={() => setModalVisible(false)}>
-              <Text style={styles.modalButtonText}>Cancel</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+        {availableAgents.map(agent => (
+          <Picker.Item
+            key={agent._id}
+            label={`${agent.name} (${agent.email})`}
+            value={agent._id}
+          />
+        ))}
+      </Picker>
+
+      <Pressable style={styles.modalButton} onPress={handleReassign}>
+        <Text style={styles.modalButtonText}>Confirm</Text>
+      </Pressable>
+      <Pressable
+        style={[styles.modalButton, { backgroundColor: '#94A3B8' }]}
+        onPress={() => setModalVisible(false)}
+      >
+        <Text style={styles.modalButtonText}>Cancel</Text>
+      </Pressable>
+    </View>
+  </View>
+</Modal>
+
     </ScrollView>
   );
 };
