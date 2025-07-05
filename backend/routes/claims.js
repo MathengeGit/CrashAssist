@@ -4,9 +4,9 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const authMiddleware = require('../middlewares/authMiddleware');
+const adminMiddleware = require('../middlewares/adminMiddleware');
 const User = require('../models/User');
 const Claim = require('../models/Claim');
-const adminMiddleware = require('../middlewares/adminMiddleware');
 
 // Multer setup for memory storage
 const storage = multer.memoryStorage();
@@ -49,17 +49,43 @@ router.post('/report', authMiddleware, async (req, res) => {
 
     const user = await User.findById(req.user.id);
 
+    // Automatically assign an agent if not already assigned
+    let assignedAgent = user.insuranceAgent;
+
+    if (!assignedAgent) {
+      const agent = await User.findOne({
+        role: 'InsuranceAgent',
+        insuranceCompany: user.insuranceCompany,
+      });
+
+      if (agent) {
+        assignedAgent = agent._id;
+
+        // Persist agent assignment to the driver
+        user.insuranceAgent = agent._id;
+        await user.save();
+      }
+    }
+
     const claim = new Claim({
       driverId: user._id,
       driverName: user.name,
       insuranceCompany: user.insuranceCompany,
-      assignedAgent: user.insuranceAgent || null,
+      assignedAgent,
       location,
       date,
       description,
       photos,
       otherParty,
       status: 'pending',
+      statusHistory: [
+        {
+          status: 'pending',
+          updatedAt: new Date(),
+          updatedBy: user._id,
+        },
+      ],
+      submittedAt: new Date(),
     });
 
     await claim.save();
@@ -68,6 +94,7 @@ router.post('/report', authMiddleware, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+
 
 // Get claims for agent's insurance company
 router.get('/agent', authMiddleware, async (req, res) => {
@@ -142,7 +169,11 @@ router.put('/:id/status', authMiddleware, async (req, res) => {
     }
 
     claim.status = status;
-    claim.statusHistory.push({ status, timestamp: new Date() });
+    claim.statusHistory.push({
+      status,
+      updatedAt: new Date(),
+      updatedBy: req.user.id,
+    });
 
     await claim.save();
     res.json({ message: 'Status updated', claim });
@@ -174,25 +205,28 @@ router.get('/agent/reports', authMiddleware, async (req, res) => {
 // Update a claim (agent updates report/status)
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
-    const updated = await Claim.findByIdAndUpdate(
-      req.params.id,
-      {
-        agentReport: req.body.report,
-        agentReportDate: new Date(),
-        status: req.body.status,
-      },
-      { new: true }
-    );
-
-    if (!updated) {
+    const claim = await Claim.findById(req.params.id);
+    if (!claim) {
       return res.status(404).json({ message: 'Claim not found' });
     }
 
-    res.json({ message: 'Claim updated', claim: updated });
+    claim.agentReport = req.body.report;
+    claim.agentReportDate = new Date();
+    claim.status = req.body.status;
+    claim.statusHistory.push({
+      status: req.body.status,
+      updatedAt: new Date(),
+      updatedBy: req.user.id,
+    });
+
+    await claim.save();
+    res.json({ message: 'Claim updated', claim });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+
+// Reassign agent (admin only)
 router.put('/:id/reassign', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { newAgentId } = req.body;
@@ -240,6 +274,5 @@ router.get('/admin/agents', authMiddleware, adminMiddleware, async (req, res) =>
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
-
 
 module.exports = router;

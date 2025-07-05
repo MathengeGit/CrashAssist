@@ -8,11 +8,8 @@ exports.getAgentClaims = async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const drivers = await User.find({ insuranceCompany: agent.insuranceCompany, role: 'Driver' }).select('_id');
-    const driverIds = drivers.map(d => d._id);
-
-    const claims = await Claim.find({ driver: { $in: driverIds } })
-      .populate('driver', 'name email')
+    const claims = await Claim.find({ insuranceCompany: agent.insuranceCompany })
+      .populate('driverId', 'name email')
       .sort({ submittedAt: -1 });
 
     res.json({ claims });

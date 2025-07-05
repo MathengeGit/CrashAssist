@@ -1,21 +1,41 @@
 const mongoose = require('mongoose');
 
 const claimSchema = new mongoose.Schema({
-  driverId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  driverName: String,
-  insuranceCompany: String,
+  driverId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  driverName: {
+    type: String,
+    required: true
+  },
+  insuranceCompany: {
+    type: String,
+    required: true
+  },
   location: {
-  latitude: { type: Number, required: true },
-  longitude: { type: Number, required: true },
-  accuracy: Number,
-  altitude: Number,
-  heading: Number,
-  speed: Number,
-  altitudeAccuracy: Number
-},
-  date: Date,
-  description: String,
-  photos: [String],
+    latitude: { type: Number, required: true },
+    longitude: { type: Number, required: true },
+    accuracy: Number,
+    altitude: Number,
+    heading: Number,
+    speed: Number,
+    altitudeAccuracy: Number
+  },
+  date: {
+    type: Date,
+    required: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  photos: {
+    type: [String],
+    required: true,
+    validate: [arr => arr.length > 0, 'At least one photo is required']
+  },
   otherParty: {
     name: String,
     phone: String,
@@ -27,12 +47,22 @@ const claimSchema = new mongoose.Schema({
     enum: ['pending', 'approved', 'rejected'],
     default: 'pending'
   },
-  assignedAgent: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-
+  assignedAgent: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
   statusHistory: [
     {
-      status: String,
-      timestamp: { type: Date, default: Date.now },
+      status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        required: true
+      },
+      timestamp: {
+        type: Date,
+        default: Date.now
+      }
     }
   ],
   submittedAt: {
@@ -40,11 +70,11 @@ const claimSchema = new mongoose.Schema({
     default: Date.now
   },
   agentReport: {
-  type: String,
-  default: ''
+    type: String,
+    default: ''
   },
   agentReportDate: {
-  type: Date
+    type: Date
   }
 });
 
