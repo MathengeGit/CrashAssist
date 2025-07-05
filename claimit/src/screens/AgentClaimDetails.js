@@ -2,18 +2,22 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, ActivityIndicator,
-  TextInput, TouchableOpacity, Alert
+  TextInput, TouchableOpacity, Alert, Linking, Image, Modal, Pressable
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import ImageViewing from 'react-native-image-viewing';
 
 const AgentClaimDetails = () => {
   const [claim, setClaim] = useState(null);
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState('');
   const [status, setStatus] = useState('pending');
+  const [isViewerVisible, setViewerVisible] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
+
   const navigation = useNavigation();
   const route = useRoute();
   const { claimId } = route.params;
@@ -23,13 +27,11 @@ const AgentClaimDetails = () => {
       try {
         const token = await AsyncStorage.getItem('token');
         const res = await axios.get(`https://claimit-backend-q4jj.onrender.com/api/claims/view/${claimId}`, {
-
           headers: { Authorization: `Bearer ${token}` },
         });
         setClaim(res.data);
         setReport(res.data.agentReport || '');
         setStatus(res.data.status);
-
       } catch (err) {
         console.error('❌ Error fetching claim details:', err);
         Alert.alert('Error', 'Failed to load claim details.');
@@ -70,21 +72,51 @@ const AgentClaimDetails = () => {
     );
   }
 
+  const imageSources = claim.photos?.map(photo => ({
+    uri: `data:${photo.mimetype};base64,${photo.buffer}`
+  }));
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.card}>
         <Text style={styles.title}>Claim by: {claim.driverName}</Text>
+
         <Text style={styles.label}>Location:</Text>
-        <Text style={styles.text}>
-  {claim.location?.latitude && claim.location?.longitude
-    ? `Lat: ${claim.location.latitude}, Lng: ${claim.location.longitude}`
-    : 'Location not available'}
-</Text>
+        {claim.location?.latitude && claim.location?.longitude ? (
+          <Text
+            style={styles.link}
+            onPress={() => {
+              const url = `https://www.google.com/maps?q=${claim.location.latitude},${claim.location.longitude}`;
+              Linking.openURL(url);
+            }}
+          >
+            View on Google Maps
+          </Text>
+        ) : (
+          <Text style={styles.text}>Location not available</Text>
+        )}
 
         <Text style={styles.label}>Description:</Text>
         <Text style={styles.text}>{claim.description}</Text>
+
         <Text style={styles.label}>Submitted:</Text>
         <Text style={styles.text}>{new Date(claim.date).toLocaleString()}</Text>
+
+        {imageSources?.length > 0 && (
+          <>
+            <Text style={styles.label}>Uploaded Photos:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoContainer}>
+              {imageSources.map((img, index) => (
+                <Pressable key={index} onPress={() => {
+                  setViewerIndex(index);
+                  setViewerVisible(true);
+                }}>
+                  <Image source={{ uri: img.uri }} style={styles.image} />
+                </Pressable>
+              ))}
+            </ScrollView>
+          </>
+        )}
       </View>
 
       <View style={styles.card}>
@@ -115,6 +147,13 @@ const AgentClaimDetails = () => {
           <Text style={styles.submitText}>Submit Report</Text>
         </TouchableOpacity>
       </View>
+
+      <ImageViewing
+        images={imageSources}
+        imageIndex={viewerIndex}
+        visible={isViewerVisible}
+        onRequestClose={() => setViewerVisible(false)}
+      />
     </ScrollView>
   );
 };
@@ -160,6 +199,12 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 14,
     color: '#334155',
+  },
+  link: {
+    fontSize: 14,
+    color: '#1D4ED8',
+    textDecorationLine: 'underline',
+    marginTop: 4,
   },
   textInput: {
     borderWidth: 1,
@@ -208,5 +253,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 10,
     fontWeight: '600',
+  },
+  photoContainer: {
+    marginTop: 10,
+    flexDirection: 'row',
+  },
+  image: {
+    width: 160,
+    height: 120,
+    borderRadius: 10,
+    marginRight: 12,
   },
 });
