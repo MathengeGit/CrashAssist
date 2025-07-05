@@ -49,14 +49,14 @@ const AdminDashboard = () => {
   const groupAgentsByCompany = () => {
     const grouped = {};
     agents.forEach(agent => {
-      if (!grouped[agent.insuranceName]) grouped[agent.insuranceName] = [];
-      grouped[agent.insuranceName].push(agent);
+      if (!grouped[agent.insuranceCompany]) grouped[agent.insuranceCompany] = [];
+      grouped[agent.insuranceCompany].push(agent);
     });
     return grouped;
   };
 
   const openReassignModal = (claim) => {
-    const insuranceAgents = agents.filter(a => a.insuranceName === claim.insuranceName);
+    const insuranceAgents = agents.filter(a => a.insuranceCompany === claim.insuranceCompany);
     setAvailableAgents(insuranceAgents);
     setSelectedClaimId(claim._id);
     setNewAgentId(claim.assignedAgent?._id || '');

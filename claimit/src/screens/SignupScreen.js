@@ -20,7 +20,7 @@ export default function SignupScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('Driver');
-  const [insuranceName, setInsuranceName] = useState('');
+  const [insuranceCompany, setInsuranceCompany] = useState('');
   const [numCars, setNumCars] = useState('');
   const [numberPlates, setNumberPlates] = useState(['']);
   const [loading, setLoading] = useState(false);
@@ -33,7 +33,7 @@ export default function SignupScreen({ navigation }) {
     if (!phone) newErrors.phone = 'Phone number is required';
     if (!email) newErrors.email = 'Email is required';
     if (!password) newErrors.password = 'Password is required';
-    if (!insuranceName) newErrors.insuranceName = 'Insurance company is required';
+    if (!insuranceCompany) newErrors.insuranceCompany = 'Insurance company is required';
 
     if (role === 'Driver') {
       if (!numCars || isNaN(numCars)) newErrors.numCars = 'Number of cars required';
@@ -55,7 +55,7 @@ export default function SignupScreen({ navigation }) {
         email,
         password,
         role,
-        insuranceName,
+        insuranceCompany,
         insuranceAgentId: null, // Always null during signup
         numCars: role === 'Driver' ? parseInt(numCars) : null,
         numberPlates: role === 'Driver' ? numberPlates : [],
@@ -118,14 +118,14 @@ export default function SignupScreen({ navigation }) {
 
         <Text style={styles.label}>Select Insurance Company <Text style={styles.required}>*</Text></Text>
         <View style={styles.pickerContainer}>
-          <Picker selectedValue={insuranceName} onValueChange={(value) => { setInsuranceName(value); setErrors(prev => ({ ...prev, insuranceName: '' })); }} style={styles.picker}>
+          <Picker selectedValue={insuranceCompany} onValueChange={(value) => { setInsuranceCompany(value); setErrors(prev => ({ ...prev, insuranceCompany: '' })); }} style={styles.picker}>
             <Picker.Item label="-- Select Insurance --" value="" />
             <Picker.Item label="Britam" value="Britam" />
             <Picker.Item label="Jubilee" value="Jubilee" />
             <Picker.Item label="APA" value="APA" />
           </Picker>
         </View>
-        {errors.insuranceName && <Text style={styles.error}>{errors.insuranceName}</Text>}
+        {errors.insuranceCompany && <Text style={styles.error}>{errors.insuranceCompany}</Text>}
 
         {role === 'Driver' && (
           <>

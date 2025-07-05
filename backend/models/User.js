@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema({
     default: null,
   },
 
-  insuranceName: {
+  insuranceCompany: {
     type: String,
     default: null,
   },

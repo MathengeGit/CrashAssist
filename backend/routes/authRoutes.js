@@ -56,12 +56,12 @@ router.put('/update-profile', authMiddleware, async (req, res) => {
     const user = await User.findById(req.user.id);
 
     // Detect change in insuranceName and assign a new agent
-    if (req.body.insuranceName && req.body.insuranceName !== user.insuranceName) {
-      user.insuranceName = req.body.insuranceName;
+    if (req.body.insuranceCompany && req.body.insuranceCompany !== user.insuranceCompany) {
+      user.insuranceCompany = req.body.insuranceCompany;
 
       const agents = await User.find({
         role: 'InsuranceAgent',
-        insuranceName: req.body.insuranceName
+        insuranceCompany: req.body.insuranceCompany
       });
 
       if (agents.length > 0) {

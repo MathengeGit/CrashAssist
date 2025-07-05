@@ -10,14 +10,14 @@ exports.signup = async (req, res) => {
     password,
     role,
     insuranceAgentId,
-    insuranceName,
+    insuranceCompany,
     numCars,
     numberPlates,
   } = req.body;
 
   try {
     // Basic validation
-    if (!name || !email || !password || !phone || !role || !insuranceName) {
+    if (!name || !email || !password || !phone || !role || !insuranceCompany) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -37,7 +37,7 @@ exports.signup = async (req, res) => {
       email,
       password: hashedPassword,
       role,
-      insuranceName,
+      insuranceCompany,
     };
 
     if (role === 'Driver') {
@@ -57,7 +57,7 @@ exports.signup = async (req, res) => {
       email: user.email,
       role: user.role,
       insuranceAgent: user.insuranceAgent,
-      insuranceName: user.insuranceName,
+      insuranceCompany: user.insuranceCompany,
       numCars: user.numCars,
       numberPlates: user.numberPlates,
       token: generateToken(user._id, user.role),
@@ -85,7 +85,7 @@ exports.login = async (req, res) => {
         email: user.email,
         role: user.role,
         insuranceAgent: user.insuranceAgent,
-        insuranceName: user.insuranceName,
+        insuranceCompany: user.insuranceCompany,
         numCars: user.numCars,
         numberPlates: user.numberPlates,
         token: generateToken(user._id, user.role),

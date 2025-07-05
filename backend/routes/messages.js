@@ -12,7 +12,7 @@ router.get('/drivers/list', auth, async (req, res) => {
   }
 
   const drivers = await User.find({
-    insuranceName: agent.insuranceName,
+    insuranceCompany: agent.insuranceCompany,
     role: 'Driver'
   }).select('name _id email');
 

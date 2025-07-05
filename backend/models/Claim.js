@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const claimSchema = new mongoose.Schema({
   driverId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   driverName: String,
-  insuranceName: String,
+  insuranceCompany: String,
   location: {
   latitude: { type: Number, required: true },
   longitude: { type: Number, required: true },

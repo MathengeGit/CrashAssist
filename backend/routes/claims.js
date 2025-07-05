@@ -52,7 +52,7 @@ router.post('/report', authMiddleware, async (req, res) => {
     const claim = new Claim({
       driverId: user._id,
       driverName: user.name,
-      insuranceName: user.insuranceName,
+      insuranceCompany: user.insuranceCompany,
       assignedAgent: user.insuranceAgent || null,
       location,
       date,
@@ -79,7 +79,7 @@ router.get('/agent', authMiddleware, async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const claims = await Claim.find({ insuranceName: agent.insuranceName }).sort({ date: -1 });
+    const claims = await Claim.find({ insuranceCompany: agent.insuranceCompany }).sort({ date: -1 });
     res.json({ claims });
   } catch (err) {
     console.error('Report error:', err);
@@ -161,7 +161,7 @@ router.get('/agent/reports', authMiddleware, async (req, res) => {
     }
 
     const claims = await Claim.find({
-      insuranceName: agent.insuranceName,
+      insuranceCompany: agent.insuranceCompany,
       agentReport: { $exists: true, $ne: '' },
     }).sort({ agentReportDate: -1 });
 

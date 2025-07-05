@@ -15,7 +15,7 @@ import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 
-const INSURANCE_COMPANIES = ['APA', 'Britam', 'Jubilee', 'AAR', 'ICEA Lion'];
+const insuranceCompany = ['APA', 'Britam', 'Jubilee'];
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -112,24 +112,25 @@ const ProfileScreen = () => {
           <View style={{ flex: 1 }}>
             <Text style={styles.label}>Insurance</Text>
             {editMode ? (
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={form.insuranceCompany}
-                  onValueChange={(itemValue) =>
-                    setForm({ ...form, insuranceCompany: itemValue })
-                  }
-                >
-                  <Picker.Item label="Select your insurance" value="" />
-                  {INSURANCE_COMPANIES.map((company) => (
-                    <Picker.Item label={company} value={company} key={company} />
-                  ))}
-                </Picker>
-              </View>
-            ) : (
-              <Text style={styles.value}>
-                {form.insuranceCompany || 'Not set'}
-              </Text>
-            )}
+  <View style={styles.pickerContainer}>
+    <Picker
+      selectedValue={form.insuranceCompany}
+      onValueChange={(itemValue) =>
+        setForm({ ...form, insuranceCompany: itemValue })
+      }
+    >
+      <Picker.Item label="Select your insurance" value="" />
+      {insuranceCompany.map((company) => (
+        <Picker.Item label={company} value={company} key={company} />
+      ))}
+    </Picker>
+  </View>
+) : (
+  <Text style={styles.value}>
+    {form.insuranceCompany || 'Not set'}
+  </Text>
+)}
+
           </View>
         </View>
 

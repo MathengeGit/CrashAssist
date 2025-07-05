@@ -12,7 +12,7 @@ router.get('/summary', authMiddleware, async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const matchInsurance = { insuranceName: agent.insuranceName };
+    const matchInsurance = { insuranceCompany: agent.insuranceCompany };
 
     const totalClaims = await Claim.countDocuments(matchInsurance);
 
