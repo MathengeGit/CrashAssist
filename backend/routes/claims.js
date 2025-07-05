@@ -217,4 +217,29 @@ router.put('/:id/reassign', authMiddleware, adminMiddleware, async (req, res) =>
   }
 });
 
+// Admin: Get all claims
+router.get('/admin/all', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const claims = await Claim.find()
+      .populate('assignedAgent', 'name email')
+      .populate('driverId', 'name email');
+    res.json({ claims });
+  } catch (err) {
+    console.error('Admin - get all claims error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Admin: Get all insurance agents
+router.get('/admin/agents', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const agents = await User.find({ role: 'InsuranceAgent' });
+    res.json({ agents });
+  } catch (err) {
+    console.error('Admin - get agents error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+
 module.exports = router;
