@@ -14,7 +14,8 @@
     "@expo/vector-icons": "^14.1.0",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-native-community/datetimepicker": "8.4.1",
-    "@react-native-picker/picker": "2.11.1",
+    "@react-native-masked-view/masked-view": "0.3.2",
+    "@react-native-picker/picker": "^2.11.1",
     "@react-navigation/bottom-tabs": "^7.3.15",
     "@react-navigation/drawer": "^7.5.2",
     "@react-navigation/elements": "^2.3.8",
@@ -54,8 +55,7 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
-    "undefined": "\\",
-    "@react-native-masked-view/masked-view": "0.3.2"
+    "undefined": "\\"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
