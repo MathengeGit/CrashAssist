@@ -28,12 +28,14 @@ export default function LoginScreen({ navigation }) {
     } else {
       setEmailError('');
     }
+
     if (!password) {
       setPasswordError('Password is required');
       valid = false;
     } else {
       setPasswordError('');
     }
+
     return valid;
   };
 
@@ -42,10 +44,10 @@ export default function LoginScreen({ navigation }) {
 
     try {
       setLoading(true);
-      const res = await axios.post('https://claimit-backend-q4jj.onrender.com/api/auth/login', {
-        email,
-        password,
-      });
+      const res = await axios.post(
+        'https://claimit-backend-q4jj.onrender.com/api/auth/login',
+        { email, password }
+      );
 
       const { token, role } = res.data;
       await AsyncStorage.setItem('token', token);
@@ -54,11 +56,21 @@ export default function LoginScreen({ navigation }) {
 
       setTimeout(() => {
         setSuccessModalVisible(false);
-        navigation.navigate(role === 'Driver' ? 'DriverHome' : 'AgentHome');
+
+        if (role === 'Driver') {
+          navigation.navigate('DriverHome');
+        } else if (role === 'InsuranceAgent') {
+          navigation.navigate('AgentHome');
+        } else if (role === 'Admin') {
+          navigation.navigate('AdminDashboard'); // ✅ make sure this points to your AdminDrawerNavigator
+        } else {
+          Alert.alert('Unknown Role', 'Your account role is not recognized.');
+        }
       }, 1500);
     } catch (error) {
-      const msg = error.response?.data?.message || 'Login failed';
-      Alert.alert('Error', msg);
+      console.log('Login error:', error.response?.data || error.message);
+      const msg = error.response?.data?.message || 'Login failed. Please try again.';
+      Alert.alert('Login Error', msg);
     } finally {
       setLoading(false);
     }
@@ -68,7 +80,9 @@ export default function LoginScreen({ navigation }) {
     <View style={styles.container}>
       <Text style={styles.title}>Log In</Text>
 
-      <Text style={styles.label}>Email <Text style={styles.required}>*</Text></Text>
+      <Text style={styles.label}>
+        Email <Text style={styles.required}>*</Text>
+      </Text>
       <TextInput
         placeholder="Email"
         value={email}
@@ -79,7 +93,9 @@ export default function LoginScreen({ navigation }) {
       />
       {emailError ? <Text style={styles.error}>{emailError}</Text> : null}
 
-      <Text style={styles.label}>Password <Text style={styles.required}>*</Text></Text>
+      <Text style={styles.label}>
+        Password <Text style={styles.required}>*</Text>
+      </Text>
       <TextInput
         placeholder="Password"
         value={password}
