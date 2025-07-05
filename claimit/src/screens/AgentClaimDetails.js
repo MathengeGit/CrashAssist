@@ -22,12 +22,14 @@ const AgentClaimDetails = () => {
     const fetchClaim = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const res = await axios.get(`https://claimit-backend-q4jj.onrender.com/api/claims/${claimId}`, {
+        const res = await axios.get(`https://claimit-backend-q4jj.onrender.com/api/claims/view/${claimId}`, {
+
           headers: { Authorization: `Bearer ${token}` },
         });
-        setClaim(res.data.claim);
-        setReport(res.data.claim.report || '');
-        setStatus(res.data.claim.status);
+        setClaim(res.data);
+        setReport(res.data.agentReport || '');
+        setStatus(res.data.status);
+
       } catch (err) {
         console.error('❌ Error fetching claim details:', err);
         Alert.alert('Error', 'Failed to load claim details.');
@@ -73,7 +75,12 @@ const AgentClaimDetails = () => {
       <View style={styles.card}>
         <Text style={styles.title}>Claim by: {claim.driverName}</Text>
         <Text style={styles.label}>Location:</Text>
-        <Text style={styles.text}>{claim.location}</Text>
+        <Text style={styles.text}>
+  {claim.location?.latitude && claim.location?.longitude
+    ? `Lat: ${claim.location.latitude}, Lng: ${claim.location.longitude}`
+    : 'Location not available'}
+</Text>
+
         <Text style={styles.label}>Description:</Text>
         <Text style={styles.text}>{claim.description}</Text>
         <Text style={styles.label}>Submitted:</Text>
