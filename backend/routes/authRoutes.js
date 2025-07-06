@@ -1,3 +1,4 @@
+// backend/routes/authRoutes.js
 const express = require('express');
 const router = express.Router();
 const { signup, login } = require('../controllers/authController');
@@ -8,10 +9,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
 router.post('/signup', signup);
 
 // Login
-// Corrected Login route
 router.post('/login', login);
- // ✅ without parentheses
-
 
 // Get all insurance agents
 router.get('/agents', async (req, res) => {
@@ -28,15 +26,15 @@ router.get('/agents', async (req, res) => {
 router.get('/profile', authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
-  .select('-password')
-  .populate('insuranceAgent', 'name email insuranceCompany');
+      .select('-password')
+      .populate('insuranceAgent', 'name email insuranceCompany');
     res.json({ user });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
-// Add this to authRoutes.js
+// Update basic profile fields
 router.put('/profile', authMiddleware, async (req, res) => {
   try {
     const updates = req.body;
@@ -48,14 +46,12 @@ router.put('/profile', authMiddleware, async (req, res) => {
   }
 });
 
-// PUT /api/auth/update-profile
+// Update profile and reassign insurance agent if necessary
 router.put('/update-profile', authMiddleware, async (req, res) => {
   try {
     const updates = { name: req.body.name, phone: req.body.phone };
-
     const user = await User.findById(req.user.id);
 
-    // Detect change in insuranceName and assign a new agent
     if (req.body.insuranceCompany && req.body.insuranceCompany !== user.insuranceCompany) {
       user.insuranceCompany = req.body.insuranceCompany;
 
@@ -64,12 +60,9 @@ router.put('/update-profile', authMiddleware, async (req, res) => {
         insuranceCompany: req.body.insuranceCompany
       });
 
-      if (agents.length > 0) {
-        const randomAgent = agents[Math.floor(Math.random() * agents.length)];
-        user.insuranceAgent = randomAgent._id;
-      } else {
-        user.insuranceAgent = null;
-      }
+      user.insuranceAgent = agents.length > 0
+        ? agents[Math.floor(Math.random() * agents.length)]._id
+        : null;
     }
 
     user.name = updates.name || user.name;
@@ -78,10 +71,8 @@ router.put('/update-profile', authMiddleware, async (req, res) => {
     await user.save();
     res.json({ user });
   } catch (err) {
-    res.status(500).json({ message: 'Error updating profile' });
+    res.status(500).json({ message: 'Error updating profile', error: err.message });
   }
 });
-
-
 
 module.exports = router;

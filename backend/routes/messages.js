@@ -1,14 +1,12 @@
+// backend/routes/messages.js
 const express = require('express');
 const router = express.Router();
-const auth = require('../middlewares/authMiddleware');
+const authMiddleware = require('../middlewares/authMiddleware');
 const Message = require('../models/Message');
 const User = require('../models/User');
-const { sendMessage, getMessages } = require('../controllers/messageController');
-const { verifyToken } = require('../middlewares/authMiddleware');
-
 
 // Get all drivers for agent’s insurance company
-router.get('/drivers/list', auth, async (req, res) => {
+router.get('/drivers/list', authMiddleware, async (req, res) => {
   const agent = await User.findById(req.user.id);
   if (agent.role !== 'InsuranceAgent') {
     return res.status(403).json({ message: 'Access denied' });
@@ -23,7 +21,7 @@ router.get('/drivers/list', auth, async (req, res) => {
 });
 
 // Send message
-router.post('/', auth, async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
   const { receiverId, text } = req.body;
   const message = new Message({
     senderId: req.user.id,
@@ -35,7 +33,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // Get messages between agent and driver
-router.get('/:userId', auth, async (req, res) => {
+router.get('/:userId', authMiddleware, async (req, res) => {
   const messages = await Message.find({
     $or: [
       { senderId: req.user.id, receiverId: req.params.userId },
@@ -45,7 +43,5 @@ router.get('/:userId', auth, async (req, res) => {
 
   res.json({ messages });
 });
-router.post('/', verifyToken, sendMessage);
-router.get('/:id', verifyToken, getMessages);
 
 module.exports = router;
