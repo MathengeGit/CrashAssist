@@ -4,7 +4,7 @@ const auth = require('../middlewares/authMiddleware');
 const Message = require('../models/Message');
 const User = require('../models/User');
 const { sendMessage, getMessages } = require('../controllers/messageController');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken } = require('../middlewares/authMiddleware');
 
 
 // Get all drivers for agent’s insurance company
