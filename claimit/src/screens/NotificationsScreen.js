@@ -11,7 +11,7 @@ import {
 import axios from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 const NotificationsScreen = () => {
   const [notifications, setNotifications] = useState([]);
@@ -55,7 +55,7 @@ const NotificationsScreen = () => {
             {item.message}
           </Text>
           <Text style={[styles.timestamp, isDarkMode && styles.darkSub]}>
-            {moment(item.createdAt).fromNow()}
+            {dayjs(item.createdAt).fromNow()}
           </Text>
         </View>
       </View>
