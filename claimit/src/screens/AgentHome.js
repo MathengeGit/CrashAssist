@@ -121,20 +121,6 @@ const AgentDashboard = () => {
             )}
           
 
-          <View style={styles.bottomPanel}>
-            <TouchableOpacity style={styles.bottomButton} onPress={() => navigation.navigate('AgentMessages')}>
-              <Icon name="notifications" size={22} color="#1E293B" />
-              <Text style={styles.bottomLabel}>Messages</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.bottomButton} onPress={() => navigation.navigate('AgentAnalytics')}>
-              <Icon name="assessment" size={22} color="#1E293B" />
-              <Text style={styles.bottomLabel}>Analytics</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.bottomButton} onPress={() => navigation.navigate('AgentSettings')}>
-              <Icon name="settings" size={22} color="#1E293B" />
-              <Text style={styles.bottomLabel}>Settings</Text>
-            </TouchableOpacity>
-          </View>
         </View>
       </View>
 

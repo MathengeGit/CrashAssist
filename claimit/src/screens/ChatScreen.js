@@ -1,17 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
-  View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet
+  View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
+import jwtDecode from 'jwt-decode';
 
 const ChatScreen = () => {
   const { driverId, driverName } = useRoute().params;
   const [messages, setMessages] = useState([]);
   const [newMsg, setNewMsg] = useState('');
+  const [userId, setUserId] = useState(null);
+  const flatListRef = useRef(null);
 
   useEffect(() => {
+    const getUserId = async () => {
+      const token = await AsyncStorage.getItem('token');
+      const decoded = jwtDecode(token);
+      setUserId(decoded.id); // or decoded._id depending on your token
+    };
+
     const fetchMessages = async () => {
       const token = await AsyncStorage.getItem('token');
       const res = await axios.get(`https://claimit-backend-q4jj.onrender.com/api/messages/${driverId}`, {
@@ -19,32 +28,57 @@ const ChatScreen = () => {
       });
       setMessages(res.data.messages);
     };
+
+    getUserId();
     fetchMessages();
-  }, []);
+    const interval = setInterval(fetchMessages, 3000); // Polling
+    return () => clearInterval(interval);
+  }, [driverId]);
 
   const sendMessage = async () => {
+    if (!newMsg.trim()) return;
     const token = await AsyncStorage.getItem('token');
+
     await axios.post(
       'https://claimit-backend-q4jj.onrender.com/api/messages',
       { receiverId: driverId, text: newMsg },
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    setMessages([...messages, { text: newMsg, senderId: 'me' }]);
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        senderId: userId,
+        receiverId: driverId,
+        text: newMsg,
+        sentAt: new Date().toISOString(),
+      },
+    ]);
     setNewMsg('');
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
+  const renderItem = ({ item }) => {
+    const isMe = item.senderId === userId;
+    return (
+      <View style={[styles.msgContainer, isMe ? styles.right : styles.left]}>
+        <Text style={[styles.msgText, isMe && styles.textWhite]}>{item.text}</Text>
+      </View>
+    );
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{driverName}</Text>
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <Text style={styles.title}>Chat with {driverName}</Text>
       <FlatList
+        ref={flatListRef}
         data={messages}
-        keyExtractor={(item, idx) => idx.toString()}
-        renderItem={({ item }) => (
-          <Text style={[styles.msg, item.senderId === 'me' && styles.me]}>
-            {item.text}
-          </Text>
-        )}
-        style={styles.list}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={renderItem}
+        contentContainerStyle={styles.list}
+        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
       />
       <View style={styles.inputRow}>
         <TextInput
@@ -57,45 +91,71 @@ const ChatScreen = () => {
           <Text style={styles.sendTxt}>Send</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
 export default ChatScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  title: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
-  list: { flex: 1 },
-  msg: {
-    padding: 10,
-    marginVertical: 4,
-    backgroundColor: '#e2e8f0',
-    borderRadius: 6,
-    alignSelf: 'flex-start',
+  container: { flex: 1, padding: 16, backgroundColor: '#F8FAFC' },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+    color: '#0F172A',
   },
-  me: {
-    backgroundColor: '#0f172a',
-    color: 'white',
+  list: {
+    paddingBottom: 20,
+    flexGrow: 1,
+  },
+  msgContainer: {
+    maxWidth: '75%',
+    padding: 10,
+    borderRadius: 12,
+    marginVertical: 4,
+  },
+  left: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#E2E8F0',
+  },
+  right: {
     alignSelf: 'flex-end',
+    backgroundColor: '#0F172A',
+  },
+  msgText: {
+    fontSize: 14,
+    color: '#1E293B',
+  },
+  textWhite: {
+    color: '#FFF',
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 10,
+    borderTopColor: '#CBD5E1',
+    borderTopWidth: 1,
+    paddingTop: 10,
   },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: 8,
-    padding: 10,
+    borderColor: '#CBD5E1',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginRight: 10,
   },
   sendBtn: {
-    marginLeft: 8,
-    backgroundColor: '#0f172a',
-    padding: 10,
-    borderRadius: 8,
+    backgroundColor: '#0F172A',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
   },
-  sendTxt: { color: '#fff', fontWeight: '600' },
+  sendTxt: {
+    color: '#FFF',
+    fontWeight: '600',
+  },
 });

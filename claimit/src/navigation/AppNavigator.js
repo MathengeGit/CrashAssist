@@ -10,7 +10,8 @@ import LoginScreen from '../screens/LoginScreen';
 
 import DriverRootNavigator from './DriverRootNavigator';
 import AgentRootNavigator from './AgentRootNavigator';
-import AdminDrawerNavigator from './AdminDrawerNavigator';
+import AdminTabs from './AdminTabs';
+
 
 const Stack = createNativeStackNavigator();
 
@@ -60,7 +61,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="DriverHome" component={DriverRootNavigator} />
         <Stack.Screen name="AgentHome" component={AgentRootNavigator} />
-        <Stack.Screen name="AdminDashboard" component={AdminDrawerNavigator} />
+        <Stack.Screen name="AdminDashboard" component={AdminTabs} />
       </Stack.Navigator>
     </NavigationContainer>
   );
