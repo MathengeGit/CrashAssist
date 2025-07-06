@@ -56,7 +56,7 @@ export default function SignupScreen({ navigation }) {
         password,
         role,
         insuranceCompany,
-        insuranceAgentId: null, // Always null during signup
+        insuranceAgentId: null,
         numCars: role === 'Driver' ? parseInt(numCars) : null,
         numberPlates: role === 'Driver' ? numberPlates : [],
       });
@@ -90,69 +90,72 @@ export default function SignupScreen({ navigation }) {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-        <Text style={styles.title}>Sign up</Text>
+        <Text style={styles.logo}>Claim<Text style={{ color: '#0a66c2' }}>It</Text></Text>
+        <View style={styles.card}>
+          <Text style={styles.title}>Sign up</Text>
 
-        <Text style={styles.label}>Full Name <Text style={styles.required}>*</Text></Text>
-        <TextInput style={styles.input} value={name} onChangeText={(text) => { setName(text); setErrors(prev => ({ ...prev, name: '' })); }} placeholder="Enter full name" />
-        {errors.name && <Text style={styles.error}>{errors.name}</Text>}
+          <Text style={styles.label}>Full Name <Text style={styles.required}>*</Text></Text>
+          <TextInput style={styles.input} value={name} onChangeText={(text) => { setName(text); setErrors(prev => ({ ...prev, name: '' })); }} placeholder="Enter full name" />
+          {errors.name && <Text style={styles.error}>{errors.name}</Text>}
 
-        <Text style={styles.label}>Phone Number <Text style={styles.required}>*</Text></Text>
-        <TextInput style={styles.input} value={phone} onChangeText={(text) => { setPhone(text); setErrors(prev => ({ ...prev, phone: '' })); }} keyboardType="phone-pad" placeholder="Enter phone" />
-        {errors.phone && <Text style={styles.error}>{errors.phone}</Text>}
+          <Text style={styles.label}>Phone Number <Text style={styles.required}>*</Text></Text>
+          <TextInput style={styles.input} value={phone} onChangeText={(text) => { setPhone(text); setErrors(prev => ({ ...prev, phone: '' })); }} keyboardType="phone-pad" placeholder="Enter phone" />
+          {errors.phone && <Text style={styles.error}>{errors.phone}</Text>}
 
-        <Text style={styles.label}>Email <Text style={styles.required}>*</Text></Text>
-        <TextInput style={styles.input} value={email} onChangeText={(text) => { setEmail(text); setErrors(prev => ({ ...prev, email: '' })); }} keyboardType="email-address" autoCapitalize="none" placeholder="Enter email" />
-        {errors.email && <Text style={styles.error}>{errors.email}</Text>}
+          <Text style={styles.label}>Email <Text style={styles.required}>*</Text></Text>
+          <TextInput style={styles.input} value={email} onChangeText={(text) => { setEmail(text); setErrors(prev => ({ ...prev, email: '' })); }} keyboardType="email-address" autoCapitalize="none" placeholder="Enter email" />
+          {errors.email && <Text style={styles.error}>{errors.email}</Text>}
 
-        <Text style={styles.label}>Password <Text style={styles.required}>*</Text></Text>
-        <TextInput style={styles.input} value={password} onChangeText={(text) => { setPassword(text); setErrors(prev => ({ ...prev, password: '' })); }} secureTextEntry placeholder="Enter password" />
-        {errors.password && <Text style={styles.error}>{errors.password}</Text>}
+          <Text style={styles.label}>Password <Text style={styles.required}>*</Text></Text>
+          <TextInput style={styles.input} value={password} onChangeText={(text) => { setPassword(text); setErrors(prev => ({ ...prev, password: '' })); }} secureTextEntry placeholder="Enter password" />
+          {errors.password && <Text style={styles.error}>{errors.password}</Text>}
 
-        <Text style={styles.label}>Select Role <Text style={styles.required}>*</Text></Text>
-        <View style={styles.pickerContainer}>
-          <Picker selectedValue={role} onValueChange={(value) => { setRole(value); setErrors({}); }} style={styles.picker}>
-            <Picker.Item label="Driver" value="Driver" />
-            <Picker.Item label="Insurance Agent" value="InsuranceAgent" />
-          </Picker>
+          <Text style={styles.label}>Select Role <Text style={styles.required}>*</Text></Text>
+          <View style={styles.pickerContainer}>
+            <Picker selectedValue={role} onValueChange={(value) => { setRole(value); setErrors({}); }} style={styles.picker}>
+              <Picker.Item label="Driver" value="Driver" />
+              <Picker.Item label="Insurance Agent" value="InsuranceAgent" />
+            </Picker>
+          </View>
+
+          <Text style={styles.label}>Insurance Company <Text style={styles.required}>*</Text></Text>
+          <View style={styles.pickerContainer}>
+            <Picker selectedValue={insuranceCompany} onValueChange={(value) => { setInsuranceCompany(value); setErrors(prev => ({ ...prev, insuranceCompany: '' })); }} style={styles.picker}>
+              <Picker.Item label="-- Select Insurance --" value="" />
+              <Picker.Item label="Britam" value="Britam" />
+              <Picker.Item label="Jubilee" value="Jubilee" />
+              <Picker.Item label="APA" value="APA" />
+            </Picker>
+          </View>
+          {errors.insuranceCompany && <Text style={styles.error}>{errors.insuranceCompany}</Text>}
+
+          {role === 'Driver' && (
+            <>
+              <Text style={styles.label}>Number of Cars <Text style={styles.required}>*</Text></Text>
+              <TextInput style={styles.input} value={numCars} keyboardType="numeric" onChangeText={(text) => { setNumCars(text); setErrors(prev => ({ ...prev, numCars: '' })); }} placeholder="e.g. 2" />
+              {errors.numCars && <Text style={styles.error}>{errors.numCars}</Text>}
+
+              {numberPlates.map((plate, idx) => (
+                <TextInput key={idx} style={styles.input} placeholder={`Plate ${idx + 1}`} value={plate} onChangeText={(text) => handleNumberPlateChange(idx, text)} />
+              ))}
+              <TouchableOpacity onPress={addPlateField}>
+                <Text style={styles.addPlate}>+ Add another plate</Text>
+              </TouchableOpacity>
+              {errors.numberPlates && <Text style={styles.error}>{errors.numberPlates}</Text>}
+            </>
+          )}
+
+          <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={loading}>
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Create Account</Text>}
+          </TouchableOpacity>
+
+          <Text onPress={() => navigation.navigate('Login')} style={styles.link}>Already have an account? Log in</Text>
         </View>
-
-        <Text style={styles.label}>Select Insurance Company <Text style={styles.required}>*</Text></Text>
-        <View style={styles.pickerContainer}>
-          <Picker selectedValue={insuranceCompany} onValueChange={(value) => { setInsuranceCompany(value); setErrors(prev => ({ ...prev, insuranceCompany: '' })); }} style={styles.picker}>
-            <Picker.Item label="-- Select Insurance --" value="" />
-            <Picker.Item label="Britam" value="Britam" />
-            <Picker.Item label="Jubilee" value="Jubilee" />
-            <Picker.Item label="APA" value="APA" />
-          </Picker>
-        </View>
-        {errors.insuranceCompany && <Text style={styles.error}>{errors.insuranceCompany}</Text>}
-
-        {role === 'Driver' && (
-          <>
-            <Text style={styles.label}>Number of Cars <Text style={styles.required}>*</Text></Text>
-            <TextInput style={styles.input} value={numCars} keyboardType="numeric" onChangeText={(text) => { setNumCars(text); setErrors(prev => ({ ...prev, numCars: '' })); }} placeholder="e.g. 2" />
-            {errors.numCars && <Text style={styles.error}>{errors.numCars}</Text>}
-
-            {numberPlates.map((plate, idx) => (
-              <TextInput key={idx} style={styles.input} placeholder={`Plate ${idx + 1}`} value={plate} onChangeText={(text) => handleNumberPlateChange(idx, text)} />
-            ))}
-            <TouchableOpacity onPress={addPlateField}>
-              <Text style={{ color: '#4a90e2', marginTop: 5 }}>+ Add another plate</Text>
-            </TouchableOpacity>
-            {errors.numberPlates && <Text style={styles.error}>{errors.numberPlates}</Text>}
-          </>
-        )}
-
-        <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Create Account</Text>}
-        </TouchableOpacity>
-
-        <Text onPress={() => navigation.navigate('Login')} style={styles.link}>Already have an account? Log in</Text>
 
         <Modal visible={showSuccessModal} transparent animationType="fade">
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Ionicons name="checkmark-circle-outline" size={64} color="green" />
+              <Ionicons name="checkmark-circle-outline" size={64} color="#4BB543" />
               <Text style={styles.modalText}>Signup Successful!</Text>
               <TouchableOpacity onPress={closeModalAndNavigate} style={styles.modalButton}>
                 <Text style={styles.modalButtonText}>OK</Text>
@@ -167,20 +170,71 @@ export default function SignupScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   scrollContainer: { flexGrow: 1, backgroundColor: '#fff' },
-  container: { padding: 20, backgroundColor: '#fff', flexGrow: 1 },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  input: { backgroundColor: '#eee', padding: 10, marginBottom: 5, borderRadius: 6 },
-  error: { color: 'red', fontSize: 12, marginBottom: 8 },
-  label: { marginTop: 10, marginBottom: 5, fontWeight: 'bold' },
+  container: { padding: 20, flexGrow: 1 },
+  logo: { fontSize: 32, fontWeight: 'bold', color: '#000', alignSelf: 'center', marginBottom: 10 },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    elevation: 5,
+    shadowColor: '#000',
+  },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
+  input: {
+    backgroundColor: '#f3f3f3',
+    padding: 12,
+    borderRadius: 6,
+    marginTop: 5,
+    marginBottom: 8,
+  },
+  error: { color: 'red', fontSize: 12, marginBottom: 5 },
+  label: { fontWeight: 'bold', marginTop: 10 },
   required: { color: 'red' },
-  button: { backgroundColor: '#4a90e2', padding: 15, borderRadius: 6, marginTop: 15 },
-  buttonText: { textAlign: 'center', color: '#fff', fontWeight: 'bold' },
-  link: { marginTop: 15, textAlign: 'center', color: '#4a90e2' },
-  pickerContainer: { backgroundColor: '#eee', borderRadius: 6, overflow: 'hidden', marginBottom: 5 },
-  picker: { height: Platform.OS === 'ios' ? 200 : 50, width: '100%' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },
-  modalContent: { width: 250, backgroundColor: 'white', padding: 30, borderRadius: 10, alignItems: 'center' },
-  modalText: { fontSize: 18, marginVertical: 15 },
-  modalButton: { backgroundColor: '#4a90e2', paddingVertical: 10, paddingHorizontal: 25, borderRadius: 6 },
+  pickerContainer: {
+    backgroundColor: '#f3f3f3',
+    borderRadius: 6,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  picker: {
+    height: Platform.OS === 'ios' ? 150 : 50,
+    width: '100%',
+  },
+  addPlate: { color: '#0a66c2', marginBottom: 10 },
+  button: {
+    backgroundColor: '#0a66c2',
+    padding: 15,
+    borderRadius: 30,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  buttonText: { color: '#fff', fontWeight: 'bold' },
+  link: { marginTop: 15, textAlign: 'center', color: '#0a66c2' },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: 250,
+    backgroundColor: 'white',
+    padding: 30,
+    borderRadius: 10,
+    alignItems: 'center',
+    elevation: 5,
+  },
+  modalText: {
+    fontSize: 18,
+    marginVertical: 15,
+    fontWeight: 'bold',
+    color: '#4BB543',
+  },
+  modalButton: {
+    backgroundColor: '#0a66c2',
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+    borderRadius: 6,
+  },
   modalButtonText: { color: '#fff', fontWeight: 'bold' },
 });
