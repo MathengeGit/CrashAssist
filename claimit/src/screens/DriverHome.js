@@ -16,7 +16,6 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import Toast from 'react-native-toast-message';
 
 
@@ -241,20 +240,7 @@ const DriverHome = () => {
               Fast accident reporting and streamlined insurance claims.
             </Text>
           </View>
-          <TouchableOpacity
-  style={styles.bellIcon}
-  onPress={() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    navigation.navigate('Notifications');
-  }}
-  accessibilityLabel="Notifications"
-  accessibilityRole="button"
->
-  <Icon name="notifications" size={26} color={isDarkMode ? '#E2E8F0' : '#FFFFFF'} />
-  {unreadCount > 0 && (
-    <View style={[styles.notificationBadge, { backgroundColor: '#F87171' }]} />
-  )}
-</TouchableOpacity>
+         
 
         </LinearGradient>
 
@@ -302,44 +288,37 @@ const DriverHome = () => {
           </Text>
         </View>
 
-        <View style={styles.cardGrid}>
-          <DashboardCard
-            icon="add-circle-outline"
-            label="Report Accident"
-            onPress={() => handleCardPress(() => navigation.navigate('ReportIncident1'))}
-            bgColor={isDarkMode ? '#2563EB' : '#3B82F6'}
-            accessibilityLabel="Report new accident"
-            isDarkMode={isDarkMode}
-          />
-          <DashboardCard
-            icon="list-alt"
-            label="My Claims"
-            onPress={() => handleCardPress(() => navigation.navigate('Claims'))}
-            bgColor={isDarkMode ? '#059669' : '#10B981'}
-            badgeCount={claimStats.total}
-            accessibilityLabel="View my claims"
-            isDarkMode={isDarkMode}
-          />
-          <DashboardCard
-            icon="person-outline"
-            label="Profile"
-            onPress={() => handleCardPress(() => navigation.navigate('ProfileScreen'))}
-            bgColor={isDarkMode ? '#7C3AED' : '#6366F1'}
-            accessibilityLabel="View my profile"
-            isDarkMode={isDarkMode}
-          />
-          <DashboardCard
-            icon="exit-to-app"
-            label="Logout"
-            onPress={() => handleCardPress(async () => {
-              await AsyncStorage.removeItem('token');
-              navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-            })}
-            bgColor={isDarkMode ? '#DC2626' : '#EF4444'}
-            accessibilityLabel="Logout from account"
-            isDarkMode={isDarkMode}
-          />
-        </View>
+        <View style={[styles.taskList, isDarkMode && styles.darkCard]}>
+  <DashboardListItem
+    icon="add-circle-outline"
+    label="Report Accident"
+    onPress={() => navigation.navigate('ReportIncident1')}
+    isDarkMode={isDarkMode}
+  />
+  <DashboardListItem
+    icon="list-alt"
+    label="View My Claims"
+    onPress={() => navigation.navigate('Claims')}
+    isDarkMode={isDarkMode}
+    badge={claimStats.total}
+  />
+  <DashboardListItem
+    icon="person-outline"
+    label="View Profile"
+    onPress={() => navigation.navigate('ProfileScreen')}
+    isDarkMode={isDarkMode}
+  />
+  <DashboardListItem
+    icon="logout"
+    label="Logout"
+    onPress={async () => {
+      await AsyncStorage.removeItem('token');
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    }}
+    isDarkMode={isDarkMode}
+  />
+</View>
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -353,6 +332,34 @@ const SummaryItem = ({ label, value, color }) => (
     <Text style={styles.summaryLabel}>{label}</Text>
   </View>
 );
+
+const DashboardListItem = ({ icon, label, onPress, badge, isDarkMode }) => (
+  <TouchableOpacity
+    style={[
+      styles.listItem,
+      { backgroundColor: isDarkMode ? '#1E293B' : '#fff' },
+    ]}
+    onPress={onPress}
+    activeOpacity={0.7}
+  >
+    <View style={styles.listItemLeft}>
+      <Icon name={icon} size={24} color={isDarkMode ? '#93C5FD' : '#2563EB'} />
+      <Text style={[styles.listItemText, isDarkMode && { color: '#F8FAFC' }]}>
+        {label}
+      </Text>
+    </View>
+
+    <View style={styles.listItemRight}>
+      {badge > 0 && (
+        <View style={styles.badgeCircle}>
+          <Text style={styles.badgeText}>{badge}</Text>
+        </View>
+      )}
+      <Icon name="chevron-right" size={24} color={isDarkMode ? '#CBD5E1' : '#9CA3AF'} />
+    </View>
+  </TouchableOpacity>
+);
+
 
 const DashboardCard = ({ icon, label, onPress, bgColor, badgeCount, accessibilityLabel, isDarkMode }) => (
   <TouchableOpacity
@@ -602,6 +609,51 @@ iconButton: {
     fontWeight: 'bold',
     marginLeft: 10,
   },
+  taskList: {
+  marginBottom: 30,
+  borderRadius: 12,
+  overflow: 'hidden',
+  backgroundColor: '#fff',
+},
+listItem: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  paddingVertical: 16,
+  paddingHorizontal: 20,
+  borderBottomWidth: 1,
+  borderBottomColor: '#E5E7EB',
+},
+listItemLeft: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 16,
+},
+listItemText: {
+  fontSize: 16,
+  color: '#1E293B',
+  fontWeight: '500',
+},
+listItemRight: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 8,
+},
+badgeCircle: {
+  backgroundColor: '#F87171',
+  borderRadius: 10,
+  minWidth: 20,
+  height: 20,
+  justifyContent: 'center',
+  alignItems: 'center',
+  paddingHorizontal: 6,
+},
+badgeText: {
+  color: '#fff',
+  fontSize: 12,
+  fontWeight: 'bold',
+},
+
 });
 <Toast />
 
