@@ -3,6 +3,9 @@ const router = express.Router();
 const auth = require('../middlewares/authMiddleware');
 const Message = require('../models/Message');
 const User = require('../models/User');
+const { sendMessage, getMessages } = require('../controllers/messageController');
+const { verifyToken } = require('../middleware/authMiddleware');
+
 
 // Get all drivers for agent’s insurance company
 router.get('/drivers/list', auth, async (req, res) => {
@@ -42,5 +45,7 @@ router.get('/:userId', auth, async (req, res) => {
 
   res.json({ messages });
 });
+router.post('/', verifyToken, sendMessage);
+router.get('/:id', verifyToken, getMessages);
 
 module.exports = router;
