@@ -220,7 +220,28 @@ router.put('/:id', authMiddleware, async (req, res) => {
     });
 
     await claim.save();
+
+     // ✅ Add this block below to avoid duplicate notifications
+    const driverId = claim.driverId;
+
+    const existing = await Notification.findOne({
+      userId: driverId,
+      type: 'agent_update',
+      claimId: claim._id,
+      read: false,
+    });
+     if (!existing) {
+      await Notification.create({
+        userId: driverId,
+        title: 'Claim status updated',
+        body: `Your claim has been updated to "${req.body.status}".`,
+        type: 'agent_update',
+        claimId: claim._id,
+      });
+    }
+
     res.json({ message: 'Claim updated', claim });
+    
 
     const Notification = require('../models/Notification');
 const driver = await User.findById(claim.driverId);

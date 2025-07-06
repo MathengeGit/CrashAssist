@@ -12,6 +12,9 @@ import axios from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+dayjs.extend(relativeTime);
 
 const NotificationsScreen = () => {
   const [notifications, setNotifications] = useState([]);

@@ -28,6 +28,24 @@ router.post('/', authMiddleware, async (req, res) => {
     receiverId,
     text
   });
+  // Prevent duplicate message notifications
+const existing = await Notification.findOne({
+  userId: targetUserId,
+  type: 'new_message',
+  claimId,
+  read: false,
+});
+
+if (!existing) {
+  await Notification.create({
+    userId: targetUserId,
+    title: 'New message from your agent',
+    body: 'You have received a new message.',
+    type: 'new_message',
+    claimId,
+  });
+}
+
   await message.save();
   res.status(201).json({ message });
 
