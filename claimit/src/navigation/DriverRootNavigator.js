@@ -7,6 +7,7 @@ import ReportIncident2 from '../screens/ReportIncident2';
 import ReportIncident3 from '../screens/ReportIncident3';
 import ClaimDetailScreen from '../screens/ClaimDetailScreen'; // ✅ THIS LINE FIXES THE ERROR
 import ChatScreen from '../screens/ChatScreen'; // 👈 Add this
+import NotificationsScreen from '../screens/NotificationsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -19,6 +20,7 @@ export default function DriverRootNavigator() {
       <Stack.Screen name="ReportIncident3" component={ReportIncident3} />
       <Stack.Screen name="ClaimDetail" component={ClaimDetailScreen} options={{ title: 'Claim Details' }} />
       <Stack.Screen name="ChatScreen" component={ChatScreen} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }

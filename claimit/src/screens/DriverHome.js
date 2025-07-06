@@ -49,6 +49,9 @@ const DriverHome = () => {
   const [manualTheme, setManualTheme] = useState(null); // 'dark' or 'light'
   const isDarkMode = manualTheme ? manualTheme === 'dark' : colorScheme === 'dark';
 
+  const [unreadCount, setUnreadCount] = useState(0);
+
+
   const fetchData = useCallback(async () => {
     try {
       setError(null);
@@ -88,9 +91,31 @@ const DriverHome = () => {
     }
   }, []);
 
+  const fetchNotifications = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const res = await axios.get('/api/notifications', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const unread = res.data.notifications.filter(n => !n.read).length;
+      setUnreadCount(unread);
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err.response?.data || err.message);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+    useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 5000); // Poll every 5s
+    return () => clearInterval(interval);
+  }, []);
+
+
+    
+
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -184,7 +209,10 @@ const DriverHome = () => {
       accessibilityRole="button"
     >
       <Icon name="notifications" size={26} color={isDarkMode ? '#E2E8F0' : '#FFFFFF'} />
-      <View style={[styles.notificationBadge, { backgroundColor: isDarkMode ? '#FBBF24' : '#FFFFFF' }]} />
+      {unreadCount > 0 && (
+  <View style={[styles.notificationBadge, { backgroundColor: '#F87171' }]} />
+)}
+
     </TouchableOpacity>
   </View>
 </View>
@@ -293,6 +321,8 @@ const DriverHome = () => {
     </SafeAreaView>
   );
 };
+
+
 
 const SummaryItem = ({ label, value, color }) => (
   <View style={styles.summaryItem}>
