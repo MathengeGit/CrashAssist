@@ -30,6 +30,17 @@ router.post('/', authMiddleware, async (req, res) => {
   });
   await message.save();
   res.status(201).json({ message });
+
+  const Notification = require('../models/Notification');
+
+await Notification.create({
+  userId: receiverId,
+  title: 'New Message',
+  message: `You received a message from ${req.user.id === message.senderId.toString() ? 'your agent' : 'a driver'}.`,
+  type: 'message',
+});
+
+
 });
 
 // Get messages between agent and driver

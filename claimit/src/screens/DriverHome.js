@@ -17,6 +17,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import Toast from 'react-native-toast-message';
+
 
 const STATUS_COLORS = {
   approved: '#10B981',
@@ -50,6 +52,8 @@ const DriverHome = () => {
   const isDarkMode = manualTheme ? manualTheme === 'dark' : colorScheme === 'dark';
 
   const [unreadCount, setUnreadCount] = useState(0);
+  const [previousUnreadCount, setPreviousUnreadCount] = useState(0);
+
 
 
   const fetchData = useCallback(async () => {
@@ -92,17 +96,33 @@ const DriverHome = () => {
   }, []);
 
   const fetchNotifications = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      const res = await axios.get('/api/notifications', {
-        headers: { Authorization: `Bearer ${token}` },
+  try {
+    const token = await AsyncStorage.getItem('token');
+    const res = await axios.get('/api/notifications', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const unread = res.data.notifications.filter(n => !n.read);
+    setUnreadCount(unread.length);
+
+    // Show toast if new notifications came in
+    if (unread.length > previousUnreadCount) {
+      const latest = unread[0];
+      Toast.show({
+        type: 'info',
+        text1: latest.title,
+        text2: latest.message,
+        position: 'top',
+        visibilityTime: 4000,
       });
-      const unread = res.data.notifications.filter(n => !n.read).length;
-      setUnreadCount(unread);
-    } catch (err) {
-      console.error('Failed to fetch notifications:', err.response?.data || err.message);
     }
-  };
+
+    setPreviousUnreadCount(unread.length);
+  } catch (err) {
+    console.error('Failed to fetch notifications:', err.response?.data || err.message);
+  }
+};
+
 
   useEffect(() => {
     fetchData();
@@ -222,17 +242,20 @@ const DriverHome = () => {
             </Text>
           </View>
           <TouchableOpacity
-            style={styles.bellIcon}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              navigation.navigate('Notifications');
-            }}
-            accessibilityLabel="Notifications"
-            accessibilityRole="button"
-          >
-            <Icon name="notifications" size={26} color={isDarkMode ? '#E2E8F0' : '#FFFFFF'} />
-            <View style={[styles.notificationBadge, { backgroundColor: isDarkMode ? '#FBBF24' : '#FFFFFF' }]} />
-          </TouchableOpacity>
+  style={styles.bellIcon}
+  onPress={() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    navigation.navigate('Notifications');
+  }}
+  accessibilityLabel="Notifications"
+  accessibilityRole="button"
+>
+  <Icon name="notifications" size={26} color={isDarkMode ? '#E2E8F0' : '#FFFFFF'} />
+  {unreadCount > 0 && (
+    <View style={[styles.notificationBadge, { backgroundColor: '#F87171' }]} />
+  )}
+</TouchableOpacity>
+
         </LinearGradient>
 
         {latestStatus ? (
@@ -580,5 +603,7 @@ iconButton: {
     marginLeft: 10,
   },
 });
+<Toast />
+
 
 export default DriverHome;

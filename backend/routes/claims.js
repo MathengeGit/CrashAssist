@@ -221,6 +221,17 @@ router.put('/:id', authMiddleware, async (req, res) => {
 
     await claim.save();
     res.json({ message: 'Claim updated', claim });
+
+    const Notification = require('../models/Notification');
+const driver = await User.findById(claim.driverId);
+
+await Notification.create({
+  userId: driver._id,
+  title: 'Claim Status Updated',
+  message: `Your claim has been marked as ${req.body.status.toUpperCase()}`,
+  type: 'claim-status',
+});
+
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
