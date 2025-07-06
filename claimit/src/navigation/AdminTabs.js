@@ -45,7 +45,7 @@ const AdminTabs = () => {
         },
         tabBarStyle: {
           backgroundColor: '#F8FAFC',
-          height: 64,
+          height: 85,
           paddingTop: 6,
           borderTopWidth: 0.4,
           borderTopColor: '#CBD5E1',

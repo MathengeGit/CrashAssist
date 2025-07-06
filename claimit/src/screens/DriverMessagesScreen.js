@@ -12,41 +12,37 @@ const DriverMessagesScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    const fetchAgent = async () => {
+    const fetchProfile = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const profileRes = await axios.get(
+        const res = await axios.get(
           'https://claimit-backend-q4jj.onrender.com/api/auth/profile',
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        const driver = profileRes.data.user;
+        const user = res.data.user;
 
-        if (!driver.insuranceAgent) {
-          setAgent(null);
-          return;
+        if (user.insuranceAgent && user.insuranceAgent.name) {
+          setAgent(user.insuranceAgent); // already populated
+        } else {
+          setAgent(null); // not assigned
         }
-
-        const agentRes = await axios.get(
-          `https://claimit-backend-q4jj.onrender.com/api/users/${driver.insuranceAgent}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        setAgent(agentRes.data.user);
       } catch (err) {
-        console.error('Error fetching agent:', err);
+        console.error('Error fetching user profile:', err);
+        setAgent(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAgent();
+    fetchProfile();
   }, []);
 
   const handleChatPress = () => {
     if (!agent) return;
+
     navigation.navigate('ChatScreen', {
-      driverId: agent._id, // even though it's "driverId", we're reusing the ChatScreen component
+      driverId: agent._id, // This is actually the agent's ID
       driverName: agent.name,
     });
   };
@@ -69,7 +65,7 @@ const DriverMessagesScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Assigned Agent:</Text>
+      <Text style={styles.label}>Your Assigned Agent:</Text>
       <TouchableOpacity style={styles.card} onPress={handleChatPress}>
         <Text style={styles.name}>{agent.name}</Text>
         <Text style={styles.email}>{agent.email}</Text>

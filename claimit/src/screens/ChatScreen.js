@@ -1,6 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
-  View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform
+  View,
+  Text,
+  TextInput,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,20 +25,23 @@ const ChatScreen = () => {
     const getUserId = async () => {
       const token = await AsyncStorage.getItem('token');
       const decoded = jwtDecode(token);
-      setUserId(decoded.id); // or decoded._id depending on your token
+      setUserId(decoded.id); // or decoded._id depending on JWT structure
     };
 
     const fetchMessages = async () => {
       const token = await AsyncStorage.getItem('token');
-      const res = await axios.get(`https://claimit-backend-q4jj.onrender.com/api/messages/${driverId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(
+        `https://claimit-backend-q4jj.onrender.com/api/messages/${driverId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setMessages(res.data.messages);
     };
 
     getUserId();
     fetchMessages();
-    const interval = setInterval(fetchMessages, 3000); // Polling
+    const interval = setInterval(fetchMessages, 3000);
     return () => clearInterval(interval);
   }, [driverId]);
 
@@ -70,7 +80,10 @@ const ChatScreen = () => {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <Text style={styles.title}>Chat with {driverName}</Text>
       <FlatList
         ref={flatListRef}
@@ -98,7 +111,11 @@ const ChatScreen = () => {
 export default ChatScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#F8FAFC' },
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#F8FAFC',
+  },
   title: {
     fontSize: 18,
     fontWeight: 'bold',

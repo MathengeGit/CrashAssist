@@ -45,7 +45,7 @@ export default function AgentTabs() {
         },
         tabBarStyle: {
           backgroundColor: '#F8FAFC',
-          height: 64,
+          height: 90,
           paddingTop: 6,
           borderTopWidth: 0.4,
           borderTopColor: '#CBD5E1',

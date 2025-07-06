@@ -6,6 +6,7 @@ import ClaimsScreen from '../screens/ClaimsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import DriverMessagesScreen from '../screens/DriverMessagesScreen';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { View, Text, StyleSheet } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 
@@ -14,40 +15,42 @@ export default function DriverTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarIcon: ({ color, size }) => {
+        tabBarStyle: {
+          height: 85,
+          paddingBottom: 10,
+          paddingTop: 10,
+          backgroundColor: '#fff',
+          borderTopWidth: 0.5,
+          borderTopColor: '#CBD5E1',
+        },
+        tabBarIcon: ({ color, focused }) => {
           let iconName;
+          let label = route.name;
 
-          switch (route.name) {
-            case 'Home':
-              iconName = 'home';
-              break;
-            case 'Claims':
-              iconName = 'description';
-              break;
-            case 'Messages':
-              iconName = 'chat';
-              break;
-            case 'Profile':
-              iconName = 'person';
-              break;
-            default:
-              iconName = 'help-outline';
-          }
+          if (route.name === 'Home') iconName = 'home';
+          else if (route.name === 'Claims') iconName = 'description';
+          else if (route.name === 'Messages') iconName = 'chat';
+          else if (route.name === 'Profile') iconName = 'person';
 
-          return <Icon name={iconName} size={size} color={color} />;
+          return (
+            <View style={styles.iconWrapper}>
+              <Icon name={iconName} size={24} color={color} />
+              <Text
+                style={[
+                  styles.label,
+                  { color: focused ? '#0F172A' : 'gray' },
+                ]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {label}
+              </Text>
+            </View>
+          );
         },
         tabBarActiveTintColor: '#0F172A',
-        tabBarInactiveTintColor: '#94a3b8',
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
-        },
-        tabBarStyle: {
-          backgroundColor: '#f8fafc',
-          borderTopWidth: 0.5,
-          borderTopColor: '#e2e8f0',
-          height: 60,
-        },
+        tabBarInactiveTintColor: 'gray',
+        tabBarShowLabel: false,
       })}
     >
       <Tab.Screen name="Home" component={DriverHome} />
@@ -57,3 +60,17 @@ export default function DriverTabs() {
     </Tab.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  iconWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 60,
+  },
+  label: {
+    fontSize: 11,
+    marginTop: 2,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+});
