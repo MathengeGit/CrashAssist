@@ -1,5 +1,3 @@
-// screens/AgentHome.js
-
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -11,6 +9,7 @@ import {
   SafeAreaView,
   Pressable,
   Dimensions,
+  TextInput,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -21,7 +20,10 @@ const { width, height } = Dimensions.get('window');
 
 const AgentDashboard = () => {
   const [claims, setClaims] = useState([]);
+  const [filteredClaims, setFilteredClaims] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState('all');
   const [menuVisible, setMenuVisible] = useState(false);
   const navigation = useNavigation();
 
@@ -33,6 +35,7 @@ const AgentDashboard = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setClaims(res.data.claims);
+        setFilteredClaims(res.data.claims);
       } catch (err) {
         console.error('❌ Error fetching claims:', err.response?.data || err.message);
       } finally {
@@ -41,6 +44,31 @@ const AgentDashboard = () => {
     };
     fetchClaims();
   }, []);
+
+  useEffect(() => {
+    filterClaims();
+  }, [searchQuery, activeFilter, claims]);
+
+  const filterClaims = () => {
+    let result = [...claims];
+    
+    // Apply status filter
+    if (activeFilter !== 'all') {
+      result = result.filter(claim => claim.status === activeFilter);
+    }
+    
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(claim => 
+        (claim.driverName?.toLowerCase().includes(query)) ||
+        (claim._id?.toLowerCase().includes(query)) ||
+        (claim.description?.toLowerCase().includes(query))
+      );
+    }
+    
+    setFilteredClaims(result);
+  };
 
   const handleLogout = async () => {
     try {
@@ -56,94 +84,232 @@ const AgentDashboard = () => {
       style={styles.claimCard}
       onPress={() => navigation.navigate('AgentClaimDetails', { claimId: item._id })}
     >
-      <View style={styles.claimCardHeader}>
+      <View style={styles.claimHeader}>
+        <View style={styles.claimMeta}>
+          <Text style={styles.claimId}>#{item._id.slice(-6).toUpperCase()}</Text>
+          <View style={[styles.statusBadge, getStatusStyle(item.status)]}>
+            <Text style={styles.statusText}>{item.status.toUpperCase()}</Text>
+          </View>
+        </View>
         <Text style={styles.claimTitle}>{item.driverName || 'Unnamed Driver'}</Text>
-        <Text style={[styles.claimStatus, getStatusStyle(item.status)]}>
-          {item.status.toUpperCase()}
-        </Text>
+        {item.description && (
+          <Text style={styles.claimDescription} numberOfLines={2}>
+            {item.description}
+          </Text>
+        )}
       </View>
-      <Text style={styles.claimDate}>
-        Submitted: {new Date(item.submittedAt).toLocaleDateString()}
-      </Text>
+      
+      <View style={styles.claimFooter}>
+        <View style={styles.dateContainer}>
+          <Icon name="schedule" size={16} color="#64748B" />
+          <Text style={styles.claimDate}>
+            {new Date(item.submittedAt).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric'
+            })}
+          </Text>
+        </View>
+        
+        <TouchableOpacity 
+          style={styles.assignButton}
+          onPress={(e) => {
+            e.stopPropagation();
+            // Handle assignment logic here
+          }}
+        >
+          <Text style={styles.assignButtonText}>Assign</Text>
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 
   const getStatusStyle = (status) => {
     switch (status) {
       case 'approved':
-        return { color: '#10B981' };
+        return { backgroundColor: '#D1FAE5', borderColor: '#059669' };
       case 'rejected':
-        return { color: '#EF4444' };
+        return { backgroundColor: '#FEE2E2', borderColor: '#DC2626' };
       case 'pending':
       default:
-        return { color: '#F59E0B' };
+        return { backgroundColor: '#FEF3C7', borderColor: '#D97706' };
     }
   };
 
   return (
     <SafeAreaView style={styles.safeContainer}>
+      {/* Sidebar Overlay */}
       {menuVisible && <Pressable style={styles.overlay} onPress={() => setMenuVisible(false)} />}
 
-      <View style={[styles.mainWrapper, menuVisible && { opacity: 0.5 }]}>
+      {/* Main Content */}
+      <View style={[styles.mainWrapper, menuVisible && styles.mainWrapperBlur]}>
         <View style={styles.mainContainer}>
-          <TouchableOpacity
-            style={styles.toggleButton}
-            onPress={() => setMenuVisible(!menuVisible)}
-          >
-            <Icon name={menuVisible ? 'close' : 'menu'} size={28} color="#1E293B" />
-          </TouchableOpacity>
-
-          
-            <View style={styles.headerCard}>
-              <Text style={styles.headerText}>Insurance Agent Dashboard</Text>
-              <Text style={styles.subText}>Monitor, assess, and resolve claim cases</Text>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => setMenuVisible(!menuVisible)}
+            >
+              <Icon name={menuVisible ? 'close' : 'menu'} size={24} color="#1E293B" />
+            </TouchableOpacity>
+            
+            <View style={styles.headerContent}>
+              <Text style={styles.headerTitle}>Claims Dashboard</Text>
+              <Text style={styles.headerSubtitle}>
+                {filteredClaims.length} {filteredClaims.length === 1 ? 'claim' : 'claims'}
+              </Text>
             </View>
+            
+            <View style={styles.headerActions}>
+              <Icon name="notifications" size={24} color="#3B82F6" />
+            </View>
+          </View>
 
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#0F172A" />
-              </View>
-            ) : claims.length > 0 ? (
-              <FlatList
-                data={claims}
-                keyExtractor={(item) => item._id}
-                renderItem={renderClaim}
-                contentContainerStyle={styles.claimList}
+          {/* Search and Filter */}
+          <View style={styles.searchContainer}>
+            <View style={styles.searchInputContainer}>
+              <Icon name="search" size={20} color="#94A3B8" style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search claims..."
+                placeholderTextColor="#94A3B8"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
               />
-            ) : (
-              <View style={styles.emptyStateContainer}>
-                <Icon name="inbox" size={60} color="#94A3B8" />
-                <Text style={styles.emptyTitle}>No Claims Yet</Text>
-                <Text style={styles.emptySubtitle}>
-                  Claims submitted by drivers will appear here for review.
+              {searchQuery ? (
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <Icon name="close" size={20} color="#94A3B8" />
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          </View>
+
+          {/* Filter Tabs */}
+          <View style={styles.filterTabs}>
+            <TouchableOpacity
+              style={[styles.filterTab, activeFilter === 'all' && styles.activeFilterTab]}
+              onPress={() => setActiveFilter('all')}
+            >
+              <Text style={[styles.filterTabText, activeFilter === 'all' && styles.activeFilterTabText]}>
+                All
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.filterTab, activeFilter === 'pending' && styles.activeFilterTab]}
+              onPress={() => setActiveFilter('pending')}
+            >
+              <Text style={[styles.filterTabText, activeFilter === 'pending' && styles.activeFilterTabText]}>
+                Pending
+              </Text>
+              <View style={styles.filterBadge}>
+                <Text style={styles.filterBadgeText}>
+                  {claims.filter(c => c.status === 'pending').length}
                 </Text>
               </View>
-            )}
-          
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.filterTab, activeFilter === 'approved' && styles.activeFilterTab]}
+              onPress={() => setActiveFilter('approved')}
+            >
+              <Text style={[styles.filterTabText, activeFilter === 'approved' && styles.activeFilterTabText]}>
+                Approved
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.filterTab, activeFilter === 'rejected' && styles.activeFilterTab]}
+              onPress={() => setActiveFilter('rejected')}
+            >
+              <Text style={[styles.filterTabText, activeFilter === 'rejected' && styles.activeFilterTabText]}>
+                Rejected
+              </Text>
+            </TouchableOpacity>
+          </View>
 
+          {/* Claims List */}
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#3B82F6" />
+              <Text style={styles.loadingText}>Loading claims...</Text>
+            </View>
+          ) : filteredClaims.length > 0 ? (
+            <FlatList
+              data={filteredClaims}
+              keyExtractor={(item) => item._id}
+              renderItem={renderClaim}
+              contentContainerStyle={styles.claimsList}
+              showsVerticalScrollIndicator={false}
+            />
+          ) : (
+            <View style={styles.emptyState}>
+              <Icon name="inbox" size={60} color="#E2E8F0" />
+              <Text style={styles.emptyTitle}>No claims found</Text>
+              <Text style={styles.emptySubtitle}>
+                {searchQuery || activeFilter !== 'all' 
+                  ? 'Try adjusting your search or filters' 
+                  : 'Claims submitted by drivers will appear here'}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
 
+      {/* Sidebar */}
       {menuVisible && (
         <View style={styles.sidebar}>
-          <TouchableOpacity style={styles.menuClose} onPress={() => setMenuVisible(false)}>
-            <Icon name="close" size={26} color="#CBD5E1" />
-          </TouchableOpacity>
-          <Text style={styles.sidebarHeader}>Agent Menu</Text>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AgentHome')}>
-            <Icon name="dashboard" size={20} color="#94A3B8" />
-            <Text style={styles.navText}>Dashboard</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => {
-  setMenuVisible(false);
-  navigation.navigate('AgentReports');
-}}>
-  <Icon name="assignment" size={20} color="#94A3B8" />
-  <Text style={styles.navText}>Reports</Text>
-</TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={handleLogout}>
-            <Icon name="logout" size={20} color="#94A3B8" />
-            <Text style={styles.navText}>Logout</Text>
+          <View style={styles.sidebarHeader}>
+            <View style={styles.agentAvatar}>
+              <Icon name="person" size={24} color="#FFFFFF" />
+            </View>
+            <Text style={styles.agentName}>Agent Dashboard</Text>
+          </View>
+          
+          <View style={styles.sidebarMenu}>
+            <TouchableOpacity 
+              style={styles.menuItem}
+              onPress={() => {
+                setMenuVisible(false);
+                navigation.navigate('AgentHome');
+              }}
+            >
+              <Icon name="dashboard" size={20} color="#3B82F6" />
+              <Text style={styles.menuItemText}>Dashboard</Text>
+              <View style={styles.menuItemBadge}>
+                <Text style={styles.menuItemBadgeText}>{claims.length}</Text>
+              </View>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.menuItem}
+              onPress={() => {
+                setMenuVisible(false);
+                navigation.navigate('AgentReports');
+              }}
+            >
+              <Icon name="assessment" size={20} color="#64748B" />
+              <Text style={styles.menuItemText}>Reports</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.menuItem}
+              onPress={() => {
+                setMenuVisible(false);
+                navigation.navigate('AgentSettings');
+              }}
+            >
+              <Icon name="settings" size={20} color="#64748B" />
+              <Text style={styles.menuItemText}>Settings</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <TouchableOpacity 
+            style={styles.logoutButton}
+            onPress={handleLogout}
+          >
+            <Icon name="logout" size={20} color="#EF4444" />
+            <Text style={styles.logoutButtonText}>Log Out</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -151,12 +317,10 @@ const AgentDashboard = () => {
   );
 };
 
-export default AgentDashboard;
-
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#FFFFFF',
   },
   overlay: {
     position: 'absolute',
@@ -169,131 +333,278 @@ const styles = StyleSheet.create({
     flex: 1,
     zIndex: 0,
   },
-  sidebar: {
-    width: '60%',
-    backgroundColor: '#0F172A',
-    paddingVertical: 20,
-    paddingHorizontal: 10,
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    zIndex: 2,
-  },
-  menuClose: {
-    alignSelf: 'flex-end',
-    marginBottom: 10,
-  },
-  sidebarHeader: {
-    color: '#E2E8F0',
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 30,
-    textAlign: 'center',
-  },
-  navItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  navText: {
-    marginLeft: 10,
-    color: '#CBD5E1',
-    fontSize: 16,
+  mainWrapperBlur: {
+    opacity: 0.5,
   },
   mainContainer: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    position: 'relative',
+    paddingHorizontal: 16,
   },
-  toggleButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 10,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    marginBottom: 8,
   },
-  headerCard: {
-    backgroundColor: '#1E293B',
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 20,
-    elevation: 3,
+  menuButton: {
+    marginRight: 16,
   },
-  headerText: {
-    color: '#FFF',
-    fontSize: 22,
+  headerContent: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 20,
     fontWeight: '700',
+    color: '#1E293B',
   },
-  subText: {
-    color: '#CBD5E1',
-    marginTop: 6,
+  headerSubtitle: {
     fontSize: 14,
+    color: '#64748B',
+    marginTop: 2,
   },
-  claimList: {
-    paddingBottom: 80,
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  searchContainer: {
+    marginBottom: 16,
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#1E293B',
+    paddingVertical: 0,
+  },
+  filterTabs: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  filterTab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  activeFilterTab: {
+    borderBottomColor: '#3B82F6',
+  },
+  filterTabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#64748B',
+  },
+  activeFilterTabText: {
+    color: '#3B82F6',
+  },
+  filterBadge: {
+    backgroundColor: '#3B82F6',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginLeft: 6,
+  },
+  filterBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  claimsList: {
+    paddingBottom: 24,
   },
   claimCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
   },
-  claimCardHeader: {
+  claimHeader: {
+    marginBottom: 12,
+  },
+  claimMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  claimId: {
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  statusBadge: {
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderWidth: 1,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  claimTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  claimDescription: {
+    fontSize: 14,
+    color: '#64748B',
+    lineHeight: 20,
+  },
+  claimFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 8,
   },
-  claimTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
-  claimStatus: {
-    fontSize: 14,
-    fontWeight: '700',
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   claimDate: {
     fontSize: 12,
     color: '#64748B',
-    marginTop: 6,
+    marginLeft: 4,
   },
-  emptyStateContainer: {
-    alignItems: 'center',
-    marginTop: 60,
-    paddingHorizontal: 20,
+  assignButton: {
+    backgroundColor: '#3B82F6',
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#334155',
-    marginTop: 16,
-  },
-  emptySubtitle: {
+  assignButtonText: {
     fontSize: 14,
-    color: '#64748B',
-    marginTop: 6,
-    textAlign: 'center',
+    fontWeight: '500',
+    color: '#FFFFFF',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  bottomPanel: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: '#E2E8F0',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#CBD5E1',
+  loadingText: {
+    marginTop: 16,
+    color: '#64748B',
   },
-  bottomButton: {
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginTop: 16,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: '#64748B',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  sidebar: {
+    width: width * 0.75,
+    backgroundColor: '#FFFFFF',
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
+    paddingTop: 40,
+  },
+  sidebarHeader: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  bottomLabel: {
-    fontSize: 12,
-    marginTop: 4,
+  agentAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#3B82F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  agentName: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#1E293B',
-    fontWeight: '500',
+  },
+  sidebarMenu: {
+    padding: 20,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: '#1E293B',
+    marginLeft: 12,
+    flex: 1,
+  },
+  menuItemBadge: {
+    backgroundColor: '#3B82F6',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  menuItemBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    marginTop: 'auto',
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  logoutButtonText: {
+    fontSize: 16,
+    color: '#EF4444',
+    marginLeft: 12,
   },
 });
+
+export default AgentDashboard;
