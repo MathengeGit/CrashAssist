@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Image
+  Image,
+  ScrollView,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../services/api';
@@ -17,12 +18,11 @@ const ReportIncident3 = () => {
   const route = useRoute();
 
   const {
-  photoUrls, // ✅ passed from step 2
-  location,
-  description,
-  date,
-} = route.params;
-
+    photoUrls,
+    location,
+    description,
+    date,
+  } = route.params;
 
   const [otherName, setOtherName] = useState('');
   const [otherPhone, setOtherPhone] = useState('');
@@ -32,90 +32,99 @@ const ReportIncident3 = () => {
   const [showModal, setShowModal] = useState(false);
 
   const handleSubmit = async () => {
-  if (!otherName || !otherPhone || !otherPlate || !otherInsurance) {
-    Alert.alert('Missing Fields', 'Please complete all required fields.');
-    return;
-  }
+    if (!otherName || !otherPhone || !otherPlate || !otherInsurance) {
+      Alert.alert('Missing Fields', 'Please complete all required fields.');
+      return;
+    }
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    const payload = {
-      location,
-      date,
-      description,
-      photos: photoUrls.map(p => p.tempUrl || p.uri || p),
-      otherParty: {
-        name: otherName,
-        contact: otherPhone,
-        licensePlate: otherPlate,
-        insuranceCompany: otherInsurance,
-      },
-    };
+    try {
+      const payload = {
+        location,
+        date,
+        description,
+        photos: photoUrls.map(p => p.tempUrl || p.uri || p),
+        otherParty: {
+          name: otherName,
+          contact: otherPhone,
+          licensePlate: otherPlate,
+          insuranceCompany: otherInsurance,
+        },
+      };
 
-    const res = await axios.post('/api/claims/report', payload); // ✅ JSON payload
+      await axios.post('/api/claims/report', payload);
 
-    setShowModal(true);
-    setTimeout(() => {
-  setShowModal(false);
-  navigation.reset({
-    index: 0,
-    routes: [{ name: 'DriverHome' }],
-  });
-}, 3000);
-
-  } catch (error) {
-    console.error(error.message);
-    Alert.alert('Error', 'Failed to submit claim. Try again later.');
-  } finally {
-    setLoading(false);
-  }
-};
+      setShowModal(true);
+      setTimeout(() => {
+        setShowModal(false);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'DriverHome' }],
+        });
+      }, 3000);
+    } catch (error) {
+      console.error(error.message);
+      Alert.alert('Error', 'Failed to submit claim. Try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Step 3: Other Driver's Info</Text>
+    <ScrollView style={styles.container}>
+      <Text style={styles.step}>Step 3 of 4</Text>
+      <Text style={styles.title}>Other Party Details</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Full Name"
-        value={otherName}
-        onChangeText={setOtherName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Phone Number"
-        keyboardType="phone-pad"
-        value={otherPhone}
-        onChangeText={setOtherPhone}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="License Plate"
-        value={otherPlate}
-        onChangeText={setOtherPlate}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Insurance Company"
-        value={otherInsurance}
-        onChangeText={setOtherInsurance}
-      />
-      {photoUrls && photoUrls.length > 0 && (
-  <View style={{ flexDirection: 'row', marginBottom: 10 }}>
-    {photoUrls.map((photo, i) => {
-      const uri = typeof photo === 'string' ? photo : photo.tempUrl || photo.uri;
-      return (
-        <Image
-          key={i}
-          source={{ uri }}
-          style={{ width: 60, height: 60, marginRight: 10, borderRadius: 8 }}
+      <View style={styles.card}>
+        <Text style={styles.label}>📛 Full Name</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. Jane Wanjiku"
+          value={otherName}
+          onChangeText={setOtherName}
         />
-      );
-    })}
-  </View>
-)}
 
+        <Text style={styles.label}>📞 Phone Number</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. 0712345678"
+          keyboardType="phone-pad"
+          value={otherPhone}
+          onChangeText={setOtherPhone}
+        />
+
+        <Text style={styles.label}>🚘 License Plate</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. KCG 345A"
+          value={otherPlate}
+          onChangeText={setOtherPlate}
+        />
+
+        <Text style={styles.label}>🏢 Insurance Company</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. CIC Insurance"
+          value={otherInsurance}
+          onChangeText={setOtherInsurance}
+        />
+      </View>
+
+      {photoUrls && photoUrls.length > 0 && (
+        <View style={styles.previewRow}>
+          {photoUrls.map((photo, i) => {
+            const uri = typeof photo === 'string' ? photo : photo.tempUrl || photo.uri;
+            return (
+              <Image
+                key={i}
+                source={{ uri }}
+                style={styles.previewImage}
+              />
+            );
+          })}
+        </View>
+      )}
 
       <TouchableOpacity
         style={styles.button}
@@ -125,7 +134,7 @@ const ReportIncident3 = () => {
         {loading ? (
           <ActivityIndicator color="#FFF" />
         ) : (
-          <Text style={styles.buttonText}>Submit Claim</Text>
+          <Text style={styles.buttonText}>✅ Submit Claim</Text>
         )}
       </TouchableOpacity>
 
@@ -142,7 +151,7 @@ const ReportIncident3 = () => {
           </View>
         </View>
       )}
-    </View>
+    </ScrollView>
   );
 };
 
@@ -151,37 +160,68 @@ export default ReportIncident3;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F1F5F9',
     padding: 20,
   },
+  step: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 8,
+  },
   title: {
-    fontSize: 22,
-    fontWeight: '600',
+    fontSize: 24,
+    fontWeight: '700',
     marginBottom: 20,
-    color: '#1E293B',
+    color: '#0F172A',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#334155',
+    marginBottom: 5,
+    marginTop: 10,
   },
   input: {
-    backgroundColor: '#fff',
-    padding: 15,
+    backgroundColor: '#F8FAFC',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 10,
+    fontSize: 16,
+    color: '#0F172A',
+  },
+  previewRow: {
+    flexDirection: 'row',
+    marginVertical: 10,
+  },
+  previewImage: {
+    width: 60,
+    height: 60,
+    marginRight: 10,
     borderRadius: 10,
-    marginBottom: 15,
-    shadowColor: '#CBD5E1',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
   },
   button: {
-    backgroundColor: '#0F172A',
-    paddingVertical: 15,
-    borderRadius: 10,
+    backgroundColor: '#2563EB',
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
     marginTop: 20,
   },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
   },
   modalOverlay: {
     position: 'absolute',
