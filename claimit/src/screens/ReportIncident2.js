@@ -103,7 +103,7 @@ const ReportIncident2 = () => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <Text style={styles.step}>Step 2 of 4</Text>
+      <Text style={styles.step}>Step 2 of 3</Text>
       <Text style={styles.title}>Add Location & Details</Text>
 
       <TouchableOpacity onPress={() => setDatePickerVisibility(true)} style={styles.datePicker}>

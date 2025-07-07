@@ -73,7 +73,7 @@ const ReportIncident3 = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.step}>Step 3 of 4</Text>
+      <Text style={styles.step}>Step 3 of 3</Text>
       <Text style={styles.title}>Other Party Details</Text>
 
       <View style={styles.card}>

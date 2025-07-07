@@ -124,7 +124,7 @@ const ReportIncident1 = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.progressText}>Step 1 of 4</Text>
+      <Text style={styles.progressText}>Step 1 of 3</Text>
       <Text style={styles.title}>Upload Scene Photos 📸</Text>
 
       <TouchableOpacity style={styles.uploadBox} onPress={pickImage}>
