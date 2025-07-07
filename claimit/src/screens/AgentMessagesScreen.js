@@ -1,42 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet
+  View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet,
+  Image, ActivityIndicator
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const AgentMessagesScreen = () => {
   const [drivers, setDrivers] = useState([]);
   const [search, setSearch] = useState('');
   const [recentMessages, setRecentMessages] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation();
 
   useEffect(() => {
     const fetchDrivers = async () => {
-      const token = await AsyncStorage.getItem('token');
-      const res = await axios.get('https://claimit-backend-q4jj.onrender.com/api/messages/drivers/list', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setDrivers(res.data.drivers);
+      try {
+        const token = await AsyncStorage.getItem('token');
+        const res = await axios.get('https://claimit-backend-q4jj.onrender.com/api/messages/drivers/list', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setDrivers(res.data.drivers);
 
-      // Fetch recent messages
-      const messagesObj = {};
-      for (const driver of res.data.drivers) {
-        try {
-          const msgRes = await axios.get(
-            `https://claimit-backend-q4jj.onrender.com/api/messages/${driver._id}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          const msgs = msgRes.data.messages;
-          if (msgs.length > 0) {
-            messagesObj[driver._id] = msgs[msgs.length - 1].text;
+        // Fetch recent messages
+        const messagesObj = {};
+        for (const driver of res.data.drivers) {
+          try {
+            const msgRes = await axios.get(
+              `https://claimit-backend-q4jj.onrender.com/api/messages/${driver._id}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const msgs = msgRes.data.messages;
+            if (msgs.length > 0) {
+              messagesObj[driver._id] = {
+                text: msgs[msgs.length - 1].text,
+                time: msgs[msgs.length - 1].createdAt
+              };
+            }
+          } catch (err) {
+            console.warn(`⚠️ No messages for ${driver.name}`);
           }
-        } catch (err) {
-          console.warn(`⚠️ No messages for ${driver.name}`);
         }
+        setRecentMessages(messagesObj);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setIsLoading(false);
       }
-      setRecentMessages(messagesObj);
     };
     fetchDrivers();
   }, []);
@@ -45,17 +57,39 @@ const AgentMessagesScreen = () => {
     d.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  const formatTime = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#4a6da7" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Messages</Text>
+        <Icon name="search" size={24} color="#4a6da7" />
+      </View>
+      
       <TextInput
-        placeholder="Search driver..."
+        placeholder="Search drivers..."
+        placeholderTextColor="#999"
         style={styles.search}
         value={search}
         onChangeText={setSearch}
       />
+      
       <FlatList
         data={filtered}
         keyExtractor={(item) => item._id}
+        contentContainerStyle={styles.listContainer}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.item}
@@ -66,12 +100,37 @@ const AgentMessagesScreen = () => {
               })
             }
           >
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.preview}>
-              {recentMessages[item._id] || 'No messages yet'}
-            </Text>
+            <View style={styles.avatar}>
+              <Image 
+                source={{ uri: 'https://via.placeholder.com/50' }} // Replace with actual avatar if available
+                style={styles.avatarImage}
+              />
+            </View>
+            <View style={styles.messageContent}>
+              <View style={styles.messageHeader}>
+                <Text style={styles.name}>{item.name}</Text>
+                {recentMessages[item._id]?.time && (
+                  <Text style={styles.time}>
+                    {formatTime(recentMessages[item._id].time)}
+                  </Text>
+                )}
+              </View>
+              <Text 
+                style={styles.preview}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {recentMessages[item._id]?.text || 'No messages yet'}
+              </Text>
+            </View>
           </TouchableOpacity>
         )}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Icon name="people-outline" size={50} color="#ccc" />
+            <Text style={styles.emptyText}>No drivers found</Text>
+          </View>
+        }
       />
     </View>
   );
@@ -81,33 +140,97 @@ export default AgentMessagesScreen;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
     flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
     backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eaeaea',
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1a1a1a',
   },
   search: {
     padding: 12,
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: 10,
-    marginBottom: 12,
-    backgroundColor: '#f8fafc',
+    paddingLeft: 40,
+    margin: 16,
+    borderRadius: 20,
+    backgroundColor: '#fff',
     fontSize: 16,
+    color: '#333',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  listContainer: {
+    paddingHorizontal: 12,
   },
   item: {
-    padding: 15,
-    backgroundColor: '#f1f5f9',
-    marginBottom: 12,
-    borderRadius: 10,
+    flexDirection: 'row',
+    padding: 12,
+    marginBottom: 8,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  avatar: {
+    marginRight: 12,
+  },
+  avatarImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#eaeaea',
+  },
+  messageContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  messageHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
   },
   name: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#0f172a',
+    color: '#1a1a1a',
+  },
+  time: {
+    fontSize: 12,
+    color: '#999',
   },
   preview: {
     fontSize: 14,
-    color: '#64748b',
-    marginTop: 4,
+    color: '#666',
+    marginRight: 8,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#999',
   },
 });
