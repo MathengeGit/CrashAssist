@@ -3,20 +3,21 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
-  ActivityIndicator,
   FlatList,
+  ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { format } from 'date-fns';
 
 const ClaimsScreen = () => {
   const navigation = useNavigation();
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchClaims = async () => {
     try {
@@ -29,119 +30,232 @@ const ClaimsScreen = () => {
       console.error('Error fetching claims:', err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchClaims();
   };
 
   useEffect(() => {
     fetchClaims();
   }, []);
 
-  const renderItem = ({ item }) => (
-  <TouchableOpacity onPress={() => navigation.navigate('ClaimDetail', { claimId: item._id })}>
-    <View style={styles.card}>
-      <View style={styles.row}>
-        <Icon name="place" size={22} color="#3B82F6" />
-        <Text style={styles.location}>
-          {item.location && item.location.latitude && item.location.longitude
-            ? `Lat: ${item.location.latitude.toFixed(5)}, Lng: ${item.location.longitude.toFixed(5)}`
-            : 'No location data'}
-        </Text>
-      </View>
-      <View style={styles.row}>
-        <Icon name="calendar-today" size={20} color="#475569" />
-        <Text style={styles.text}>{new Date(item.date).toDateString()}</Text>
-      </View>
+  const getLocationName = (location) => {
+    if (location && location.latitude && location.longitude) {
+      return `${location.latitude.toFixed(2)}, ${location.longitude.toFixed(2)}`;
+    }
+    return 'Unknown Location';
+  };
 
-      <View style={styles.row}>
-        <Icon name="assignment" size={20} color="#475569" />
-        <Text style={[styles.status, getStatusStyle(item.status)]}>
-          {item.status}
-        </Text>
+  const formatClaimDate = (dateString) => {
+    try {
+      if (!dateString) return 'No date';
+      
+      let date = new Date(dateString);
+      
+      // If date is invalid, try parsing as timestamp
+      if (isNaN(date.getTime())) {
+        const timestamp = Number(dateString);
+        if (!isNaN(timestamp)) {
+          date = new Date(timestamp);
+        }
+      }
+      
+      // If still invalid, return placeholder
+      if (isNaN(date.getTime())) {
+        return 'Invalid date';
+      }
+      
+      return format(date, 'd MMM · HH:mm');
+    } catch (error) {
+      console.warn('Error formatting date:', error);
+      return 'Date error';
+    }
+  };
+
+  const renderItem = ({ item }) => (
+    <TouchableOpacity 
+      onPress={() => navigation.navigate('ClaimDetail', { claimId: item._id })}
+      style={styles.cardContainer}
+    >
+      <View style={[styles.statusIndicator, getStatusStyle(item.status)]} />
+      
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Icon name="place" size={20} color="#4B5563" />
+          <Text style={styles.location} numberOfLines={1}>
+            {getLocationName(item.location)}
+          </Text>
+          <Text style={styles.date}>
+            {formatClaimDate(item.date)}
+          </Text>
+        </View>
+        
+        <View style={styles.cardBody}>
+          <View style={styles.statusContainer}>
+            <Text style={[styles.statusText, getStatusStyle(item.status)]}>
+              {item.status.toUpperCase()}
+            </Text>
+          </View>
+          
+          <View style={styles.detailsRow}>
+            <Icon name="description" size={16} color="#6B7280" />
+            <Text style={styles.detailsText} numberOfLines={1}>
+              {item.description || 'No description'}
+            </Text>
+          </View>
+        </View>
       </View>
-    </View>
-  </TouchableOpacity>
-);
+    </TouchableOpacity>
+  );
 
   const getStatusStyle = (status) => {
     switch (status.toLowerCase()) {
       case 'approved':
-        return { color: '#10B981' };
+        return { backgroundColor: '#D1FAE5', color: '#065F46' };
       case 'pending':
-        return { color: '#FBBF24' };
+        return { backgroundColor: '#FEF3C7', color: '#92400E' };
       case 'rejected':
-        return { color: '#EF4444' };
+        return { backgroundColor: '#FEE2E2', color: '#991B1B' };
       default:
-        return { color: '#64748B' };
+        return { backgroundColor: '#E5E7EB', color: '#4B5563' };
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>My Past Claims</Text>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>My Claims</Text>
+      </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#0F172A" style={{ marginTop: 40 }} />
+        <ActivityIndicator size="large" color="#3B82F6" style={styles.loader} />
       ) : claims.length === 0 ? (
-        <Text style={styles.empty}>No claims submitted yet.</Text>
+        <View style={styles.emptyState}>
+          <Icon name="assignment" size={60} color="#E5E7EB" />
+          <Text style={styles.emptyTitle}>No claims yet</Text>
+          <Text style={styles.emptyText}>When you submit claims, they'll appear here</Text>
+        </View>
       ) : (
         <FlatList
           data={claims}
           keyExtractor={(item) => item._id}
           renderItem={renderItem}
-          contentContainerStyle={{ paddingBottom: 20 }}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
         />
       )}
     </View>
   );
 };
 
-export default ClaimsScreen;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
-    padding: 20,
+    backgroundColor: '#F9FAFB',
   },
   header: {
+    padding: 20,
+    paddingTop: 50,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#0F172A',
-    marginBottom: 20,
+    color: '#111827',
+  },
+  listContent: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  cardContainer: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  statusIndicator: {
+    width: 6,
+    backgroundColor: '#3B82F6',
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    flex: 1,
     padding: 16,
-    marginBottom: 16,
-    elevation: 3,
   },
-  row: {
+  cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   location: {
-    marginLeft: 10,
+    flex: 1,
+    marginLeft: 8,
     fontSize: 16,
-    color: '#1E293B',
+    fontWeight: '600',
+    color: '#111827',
+  },
+  date: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  cardBody: {
+    marginLeft: 28,
+  },
+  statusContainer: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  statusText: {
+    fontSize: 12,
     fontWeight: '600',
   },
-  text: {
-    marginLeft: 10,
-    fontSize: 15,
-    color: '#475569',
+  detailsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  status: {
-    marginLeft: 10,
-    fontSize: 15,
-    fontWeight: '600',
-    textTransform: 'capitalize',
+  detailsText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#6B7280',
+    flex: 1,
   },
-  empty: {
-    fontSize: 16,
-    color: '#64748B',
-    textAlign: 'center',
+  loader: {
     marginTop: 40,
   },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 8,
+    marginTop: 16,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
 });
+
+export default ClaimsScreen;
