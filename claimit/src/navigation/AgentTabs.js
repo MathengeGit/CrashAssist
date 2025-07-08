@@ -6,7 +6,6 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import AgentHome from '../screens/AgentHome';
 import AgentMessagesScreen from '../screens/AgentMessagesScreen';
 import AgentAnalytics from '../screens/AgentAnalytics';
-import AgentSettings from '../screens/AgentSettings';
 
 const Tab = createBottomTabNavigator();
 
@@ -55,7 +54,7 @@ export default function AgentTabs() {
       <Tab.Screen name="Dashboard" component={AgentHome} />
       <Tab.Screen name="Messages" component={AgentMessagesScreen} />
       <Tab.Screen name="Analytics" component={AgentAnalytics} />
-      <Tab.Screen name="Settings" component={AgentSettings} />
+
     </Tab.Navigator>
   );
 }
