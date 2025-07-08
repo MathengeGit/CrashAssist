@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 const { width, height } = Dimensions.get('window');
@@ -101,7 +101,7 @@ const AgentDashboard = () => {
       
       <View style={styles.claimFooter}>
         <View style={styles.dateContainer}>
-          <Icon name="schedule" size={16} color="#64748B" />
+          <MaterialIcons name="schedule" size={16} color="#64748B" />
           <Text style={styles.claimDate}>
             {new Date(item.submittedAt).toLocaleDateString('en-US', {
               month: 'short',
@@ -150,7 +150,7 @@ const AgentDashboard = () => {
               style={styles.menuButton}
               onPress={() => setMenuVisible(!menuVisible)}
             >
-              <Icon name={menuVisible ? 'close' : 'menu'} size={24} color="#1E293B" />
+              <MaterialIcons name={menuVisible ? 'close' : 'menu'} size={24} color="#1E293B" />
             </TouchableOpacity>
             
             <View style={styles.headerContent}>
@@ -161,14 +161,14 @@ const AgentDashboard = () => {
             </View>
             
             <View style={styles.headerActions}>
-              <Icon name="notifications" size={24} color="#3B82F6" />
+              <MaterialIcons name="notifications" size={24} color="#3B82F6" />
             </View>
           </View>
 
           {/* Search and Filter */}
           <View style={styles.searchContainer}>
             <View style={styles.searchInputContainer}>
-              <Icon name="search" size={20} color="#94A3B8" style={styles.searchIcon} />
+              <MaterialIcons name="search" size={20} color="#94A3B8" style={styles.searchIcon} />
               <TextInput
                 style={styles.searchInput}
                 placeholder="Search claims..."
@@ -178,7 +178,7 @@ const AgentDashboard = () => {
               />
               {searchQuery ? (
                 <TouchableOpacity onPress={() => setSearchQuery('')}>
-                  <Icon name="close" size={20} color="#94A3B8" />
+                  <MaterialIcons name="close" size={20} color="#94A3B8" />
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -244,7 +244,7 @@ const AgentDashboard = () => {
             />
           ) : (
             <View style={styles.emptyState}>
-              <Icon name="inbox" size={60} color="#E2E8F0" />
+              <MaterialIcons name="inbox" size={60} color="#E2E8F0" />
               <Text style={styles.emptyTitle}>No claims found</Text>
               <Text style={styles.emptySubtitle}>
                 {searchQuery || activeFilter !== 'all' 
@@ -261,7 +261,7 @@ const AgentDashboard = () => {
         <View style={styles.sidebar}>
           <View style={styles.sidebarHeader}>
             <View style={styles.agentAvatar}>
-              <Icon name="person" size={24} color="#FFFFFF" />
+              <MaterialIcons name="person" size={24} color="#FFFFFF" />
             </View>
             <Text style={styles.agentName}>Agent Dashboard</Text>
           </View>
@@ -274,7 +274,7 @@ const AgentDashboard = () => {
                 navigation.navigate('AgentHome');
               }}
             >
-              <Icon name="dashboard" size={20} color="#3B82F6" />
+              <MaterialIcons name="dashboard" size={20} color="#3B82F6" />
               <Text style={styles.menuItemText}>Dashboard</Text>
               <View style={styles.menuItemBadge}>
                 <Text style={styles.menuItemBadgeText}>{claims.length}</Text>
@@ -288,7 +288,7 @@ const AgentDashboard = () => {
                 navigation.navigate('AgentReports');
               }}
             >
-              <Icon name="assessment" size={20} color="#64748B" />
+              <MaterialIcons name="assessment" size={20} color="#64748B" />
               <Text style={styles.menuItemText}>Reports</Text>
             </TouchableOpacity>
             
@@ -299,7 +299,7 @@ const AgentDashboard = () => {
                 navigation.navigate('AgentSettings');
               }}
             >
-              <Icon name="settings" size={20} color="#64748B" />
+              <MaterialIcons name="settings" size={20} color="#64748B" />
               <Text style={styles.menuItemText}>Settings</Text>
             </TouchableOpacity>
           </View>
@@ -308,7 +308,7 @@ const AgentDashboard = () => {
             style={styles.logoutButton}
             onPress={handleLogout}
           >
-            <Icon name="logout" size={20} color="#EF4444" />
+            <MaterialIcons name="logout" size={20} color="#EF4444" />
             <Text style={styles.logoutButtonText}>Log Out</Text>
           </TouchableOpacity>
         </View>

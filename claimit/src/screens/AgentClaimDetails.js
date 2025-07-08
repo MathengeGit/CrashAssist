@@ -20,6 +20,9 @@ import ImageViewer from 'react-native-image-zoom-viewer';
 import { format } from 'date-fns';
 import Modal from 'react-native-modal';
 import MapView, { Marker } from 'react-native-maps';
+import { Alert } from 'react-native';
+
+
 
 
 const AgentClaimDetails = () => {

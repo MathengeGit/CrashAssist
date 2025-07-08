@@ -4,8 +4,9 @@ const router = express.Router();
 const authMiddleware = require('../middlewares/authMiddleware');
 const Message = require('../models/Message');
 const User = require('../models/User');
+const Notification = require('../models/Notification'); // ✅ Moved to top
 
-// Get all drivers for agent’s insurance company
+// GET /api/messages/drivers/list
 router.get('/drivers/list', authMiddleware, async (req, res) => {
   const agent = await User.findById(req.user.id);
   if (agent.role !== 'InsuranceAgent') {
@@ -14,54 +15,48 @@ router.get('/drivers/list', authMiddleware, async (req, res) => {
 
   const drivers = await User.find({
     insuranceCompany: agent.insuranceCompany,
-    role: 'Driver'
+    role: 'Driver',
   }).select('name _id email');
 
   res.json({ drivers });
 });
 
-// Send message
+// POST /api/messages/ — Send a message
 router.post('/', authMiddleware, async (req, res) => {
   const { receiverId, text } = req.body;
+
+  if (!receiverId || !text) {
+    return res.status(400).json({ message: 'receiverId and text are required' });
+  }
+
   const message = new Message({
     senderId: req.user.id,
     receiverId,
-    text
+    text,
   });
-  // Prevent duplicate message notifications
-const existing = await Notification.findOne({
-  userId: targetUserId,
-  type: 'new_message',
-  claimId,
-  read: false,
-});
-
-if (!existing) {
-  await Notification.create({
-    userId: targetUserId,
-    title: 'New message from your agent',
-    body: 'You have received a new message.',
-    type: 'new_message',
-    claimId,
-  });
-}
 
   await message.save();
+
+  // Send a message notification if not already sent
+  const existingNotification = await Notification.findOne({
+    userId: receiverId,
+    type: 'new_message',
+    read: false,
+  });
+
+  if (!existingNotification) {
+    await Notification.create({
+      userId: receiverId,
+      title: 'New message received',
+      body: `You have a new message from ${req.user.name || 'a user'}.`,
+      type: 'new_message',
+    });
+  }
+
   res.status(201).json({ message });
-
-  const Notification = require('../models/Notification');
-
-await Notification.create({
-  userId: receiverId,
-  title: 'New Message',
-  message: `You received a message from ${req.user.id === message.senderId.toString() ? 'your agent' : 'a driver'}.`,
-  type: 'message',
 });
 
-
-});
-
-// Get messages between agent and driver
+// GET /api/messages/:userId — Get messages between current user and another
 router.get('/:userId', authMiddleware, async (req, res) => {
   const messages = await Message.find({
     $or: [
