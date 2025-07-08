@@ -7,6 +7,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
 const adminMiddleware = require('../middlewares/adminMiddleware');
 const User = require('../models/User');
 const Claim = require('../models/Claim');
+const Notification = require('../models/Notification');
 
 // Multer setup for memory storage
 const storage = multer.memoryStorage();
@@ -210,7 +211,8 @@ router.put('/:id', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'Claim not found' });
     }
 
-    claim.agentReport = req.body.report;
+    claim.agentReport = req.body.agentReport;
+
     claim.agentReportDate = new Date();
     claim.status = req.body.status;
     claim.statusHistory.push({
@@ -242,16 +244,6 @@ router.put('/:id', authMiddleware, async (req, res) => {
 
     res.json({ message: 'Claim updated', claim });
     
-
-    const Notification = require('../models/Notification');
-const driver = await User.findById(claim.driverId);
-
-await Notification.create({
-  userId: driver._id,
-  title: 'Claim Status Updated',
-  message: `Your claim has been marked as ${req.body.status.toUpperCase()}`,
-  type: 'claim-status',
-});
 
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });

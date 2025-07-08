@@ -19,6 +19,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import { format } from 'date-fns';
 import Modal from 'react-native-modal';
+import MapView, { Marker } from 'react-native-maps';
+
 
 const AgentClaimDetails = () => {
   const [claim, setClaim] = useState(null);
@@ -54,30 +56,44 @@ const AgentClaimDetails = () => {
     fetchClaim();
   }, [claimId]);
 
-  const handleSubmit = async () => {
-    if (!report.trim()) {
-      Alert.alert('Validation Error', 'Please write your assessment report');
-      return;
-    }
+  const validateForm = () => {
+  if (!report.trim()) {
+    Alert.alert('Validation Error', 'Please write your assessment report');
+    return false;
+  }
 
-    setIsSubmitting(true);
-    try {
-      const token = await AsyncStorage.getItem('token');
-      await axios.put(
-        `https://claimit-backend-q4jj.onrender.com/api/claims/${claimId}`,
-        { report, status },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      Alert.alert('Success', 'Claim updated successfully', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
-    } catch (err) {
-      console.error('Error updating claim:', err);
-      Alert.alert('Error', 'Failed to update claim.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const validStatuses = ['pending', 'approved', 'rejected'];
+  if (!validStatuses.includes(status)) {
+    Alert.alert('Validation Error', 'Please select a valid status');
+    return false;
+  }
+
+  return true;
+};
+
+
+  const handleSubmit = async () => {
+  if (!validateForm()) return;
+
+  setIsSubmitting(true);
+  try {
+    const token = await AsyncStorage.getItem('token');
+    await axios.put(
+      `https://claimit-backend-q4jj.onrender.com/api/claims/${claimId}`,
+      { agentReport: report, status },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    Alert.alert('Success', 'Claim updated successfully', [
+      { text: 'OK', onPress: () => navigation.goBack() },
+    ]);
+  } catch (err) {
+    console.error('Error updating claim:', err);
+    Alert.alert('Error', 'Failed to update claim.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   const openMap = () => {
     if (claim?.location?.latitude && claim?.location?.longitude) {
@@ -120,8 +136,9 @@ const AgentClaimDetails = () => {
   }
 
   const images = claim.photos?.map(photo => ({
-    url: `data:${photo.mimetype};base64,${photo.buffer}`,
-  }));
+  url: photo, // directly use the base64 image string
+}));
+
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -152,16 +169,29 @@ const AgentClaimDetails = () => {
               <Icon name="place" size={20} color="#3B82F6" />
               <Text style={styles.sectionTitle}>Location</Text>
             </View>
-            {claim.location ? (
-              <TouchableOpacity style={styles.locationButton} onPress={openMap}>
-                <Text style={styles.locationText}>
-                  {claim.address || 'View on Map'}
-                </Text>
-                <Icon name="open-in-new" size={18} color="#3B82F6" />
-              </TouchableOpacity>
-            ) : (
-              <Text style={styles.noLocationText}>Location not available</Text>
-            )}
+            {claim.location?.latitude && claim.location?.longitude ? (
+  <MapView
+    style={styles.map}
+    initialRegion={{
+      latitude: claim.location.latitude,
+      longitude: claim.location.longitude,
+      latitudeDelta: 0.005,
+      longitudeDelta: 0.005,
+    }}
+  >
+    <Marker
+      coordinate={{
+        latitude: claim.location.latitude,
+        longitude: claim.location.longitude,
+      }}
+      title="Accident Location"
+      description={claim.description}
+    />
+  </MapView>
+) : (
+  <Text style={styles.noLocationText}>Location not available</Text>
+)}
+
           </View>
 
           {/* Description Section */}
@@ -543,6 +573,13 @@ const styles = StyleSheet.create({
     right: 20,
     zIndex: 1,
   },
+  map: {
+  width: '100%',
+  height: 200,
+  borderRadius: 12,
+  marginTop: 10,
+}
+
 });
 
 export default AgentClaimDetails;

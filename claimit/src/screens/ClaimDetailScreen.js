@@ -151,7 +151,7 @@ const ClaimDetailScreen = ({ route, navigation }) => {
                 Status changed to {entry.status}
               </Text>
               <Text style={styles.timelineDate}>
-                {formatDate(entry.timestamp)}
+                {formatDate(entry.updatedAt)}
               </Text>
             </View>
           </View>
