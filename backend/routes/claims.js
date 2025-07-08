@@ -159,7 +159,7 @@ router.put('/:id/status', authMiddleware, async (req, res) => {
   try {
     const { status } = req.body;
     const validStatuses = ['pending', 'approved', 'rejected'];
-if (!validStatuses.includes(req.body.status)) {
+if (!validStatuses.includes(status)) {
   return res.status(400).json({ message: 'Invalid status value' });
 }
 
@@ -171,10 +171,14 @@ if (!validStatuses.includes(req.body.status)) {
 
     claim.status = status;
     claim.statusHistory.push({
-      status,
-      updatedAt: new Date(),
-      updatedBy: req.user.id,
-    });
+  status: req.body.status,
+  timestamp: new Date()  // ✅ use correct key
+});
+console.log('📦 Saving claim with:', {
+  status: claim.status,
+  agentReport: claim.agentReport,
+  statusHistory: claim.statusHistory,
+});
 
     await claim.save();
     res.json({ message: 'Status updated', claim });
@@ -207,8 +211,11 @@ router.get('/agent/reports', authMiddleware, async (req, res) => {
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const { agentReport, status } = req.body;
-    const validStatuses = ['pending', 'approved', 'rejected'];
 
+    console.log('🛠️ Incoming update payload:', req.body);
+    console.log('🧾 Claim ID:', req.params.id);
+
+    const validStatuses = ['pending', 'approved', 'rejected'];
     if (!agentReport || !validStatuses.includes(status)) {
       return res.status(400).json({ message: 'Invalid or missing data' });
     }
@@ -228,7 +235,6 @@ router.put('/:id', authMiddleware, async (req, res) => {
 
     await claim.save();
 
-    // Prevent crash if driverId is populated or missing
     const driverId = claim.driverId?._id || claim.driverId;
     if (!driverId) {
       console.warn('⚠️ Claim has no driverId, skipping notification.');
@@ -244,20 +250,21 @@ router.put('/:id', authMiddleware, async (req, res) => {
 
     if (!existing) {
       await Notification.create({
-        userId: driverId,
-        title: 'Claim status updated',
-        body: `Your claim has been updated to "${status}".`,
-        type: 'agent_update',
-        claimId: claim._id,
-      });
+  userId: driverId,
+  message: `Your claim has been updated to "${status}".`,
+  type: 'agent_update',               // ✅ Ensure consistency with `findOne`
+  claimId: claim._id,                 // ✅ Helps track the exact claim
+});
+
     }
 
     res.json({ message: 'Claim updated', claim });
   } catch (err) {
-    console.error('❌ Error updating claim:', err);
+    console.error('❌ FULL ERROR STACK:', err.stack || err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+
 
 
 // Reassign agent (admin only)
