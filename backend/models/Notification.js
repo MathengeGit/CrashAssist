@@ -6,6 +6,7 @@ const notificationSchema = new mongoose.Schema({
   read: { type: Boolean, default: false },
   type: { type: String },                 // optional but important for filtering
   claimId: { type: mongoose.Schema.Types.ObjectId, ref: 'Claim' },  // for tracking
+  meta: { type: Object }, // ✅ Add this line
   createdAt: { type: Date, default: Date.now },
 });
 

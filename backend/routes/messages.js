@@ -39,17 +39,21 @@ router.post('/', authMiddleware, async (req, res) => {
 
   // Send a message notification if not already sent
   const existingNotification = await Notification.findOne({
-    userId: receiverId,
-    type: 'new_message',
-    read: false,
-  });
+  userId: receiverId,
+  type: 'new_message',
+  'meta.senderId': req.user.id, // use metadata
+  read: false,
+});
+
 
   if (!existingNotification) {
    await Notification.create({
   userId: receiverId,
   message: `You have a new message from ${req.user.name || 'a user'}.`,
   type: 'new_message',
+  meta: { senderId: req.user.id }, // store sender
 });
+
 
 
   }
