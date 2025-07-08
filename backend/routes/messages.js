@@ -45,12 +45,13 @@ router.post('/', authMiddleware, async (req, res) => {
   });
 
   if (!existingNotification) {
-    await Notification.create({
-      userId: receiverId,
-      title: 'New message received',
-      body: `You have a new message from ${req.user.name || 'a user'}.`,
-      type: 'new_message',
-    });
+   await Notification.create({
+  userId: receiverId,
+  message: `You have a new message from ${req.user.name || 'a user'}.`,
+  type: 'new_message',
+});
+
+
   }
 
   res.status(201).json({ message });

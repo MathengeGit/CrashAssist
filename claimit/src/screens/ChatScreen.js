@@ -52,9 +52,10 @@ const ChatScreen = () => {
   }, [driverId]);
 
   const sendMessage = async () => {
-    if (!newMsg.trim()) return;
-    const token = await AsyncStorage.getItem('token');
+  if (!newMsg.trim()) return;
+  const token = await AsyncStorage.getItem('token');
 
+  try {
     await axios.post(
       'https://claimit-backend-q4jj.onrender.com/api/messages',
       { receiverId: driverId, text: newMsg },
@@ -70,11 +71,16 @@ const ChatScreen = () => {
         sentAt: new Date().toISOString(),
       },
     ]);
-    setNewMsg('');
+
+    setNewMsg(''); // ✅ Clear input AFTER message is sent
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
     }, 100);
-  };
+  } catch (error) {
+    console.error('❌ Error sending message:', error.response?.data || error.message);
+  }
+};
+
 
   const formatTime = (dateString) => dayjs(dateString).format('HH:mm');
 
