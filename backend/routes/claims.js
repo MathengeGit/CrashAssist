@@ -159,10 +159,10 @@ router.put('/:id/status', authMiddleware, async (req, res) => {
   try {
     const { status } = req.body;
     const validStatuses = ['pending', 'approved', 'rejected'];
+if (!validStatuses.includes(req.body.status)) {
+  return res.status(400).json({ message: 'Invalid status value' });
+}
 
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({ message: 'Invalid status value' });
-    }
 
     const claim = await Claim.findById(req.params.id);
     if (!claim) {
@@ -206,25 +206,34 @@ router.get('/agent/reports', authMiddleware, async (req, res) => {
 // Update a claim (agent updates report/status)
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
-    const claim = await Claim.findById(req.params.id);
-    if (!claim) {
-      return res.status(404).json({ message: 'Claim not found' });
+    const { agentReport, status } = req.body;
+    const validStatuses = ['pending', 'approved', 'rejected'];
+
+    if (!agentReport || !validStatuses.includes(status)) {
+      return res.status(400).json({ message: 'Invalid or missing data' });
     }
 
-    claim.agentReport = req.body.agentReport;
+    const claim = await Claim.findById(req.params.id);
+    if (!claim) return res.status(404).json({ message: 'Claim not found' });
 
+    claim.agentReport = agentReport;
     claim.agentReportDate = new Date();
-    claim.status = req.body.status;
+    claim.status = status;
+
     claim.statusHistory.push({
-      status: req.body.status,
+      status,
       updatedAt: new Date(),
       updatedBy: req.user.id,
     });
 
     await claim.save();
 
-     // ✅ Add this block below to avoid duplicate notifications
-    const driverId = claim.driverId;
+    // Prevent crash if driverId is populated or missing
+    const driverId = claim.driverId?._id || claim.driverId;
+    if (!driverId) {
+      console.warn('⚠️ Claim has no driverId, skipping notification.');
+      return res.json({ message: 'Claim updated but no driver found.', claim });
+    }
 
     const existing = await Notification.findOne({
       userId: driverId,
@@ -232,23 +241,24 @@ router.put('/:id', authMiddleware, async (req, res) => {
       claimId: claim._id,
       read: false,
     });
-     if (!existing) {
+
+    if (!existing) {
       await Notification.create({
         userId: driverId,
         title: 'Claim status updated',
-        body: `Your claim has been updated to "${req.body.status}".`,
+        body: `Your claim has been updated to "${status}".`,
         type: 'agent_update',
         claimId: claim._id,
       });
     }
 
     res.json({ message: 'Claim updated', claim });
-    
-
   } catch (err) {
+    console.error('❌ Error updating claim:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+
 
 // Reassign agent (admin only)
 router.put('/:id/reassign', authMiddleware, adminMiddleware, async (req, res) => {
@@ -264,6 +274,10 @@ router.put('/:id/reassign', authMiddleware, adminMiddleware, async (req, res) =>
     if (!claim) {
       return res.status(404).json({ message: 'Claim not found' });
     }
+    if (!driverId) {
+  console.warn('⚠️ Claim has no driverId, skipping notification.');
+  return res.json({ message: 'Claim updated but no driver found.', claim });
+}
 
     claim.assignedAgent = newAgentId;
     await claim.save();
