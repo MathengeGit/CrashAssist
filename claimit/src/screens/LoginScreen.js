@@ -14,6 +14,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import Constants from 'expo-constants';
 import axios from 'axios';
+import { makeRedirectUri } from 'expo-auth-session';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -28,10 +29,11 @@ export default function LoginScreen({ navigation }) {
   const [successModalVisible, setSuccessModalVisible] = useState(false);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: '<YOUR_ANDROID_CLIENT_ID>',
-    iosClientId: '<YOUR_IOS_CLIENT_ID>',
-    expoClientId: '711038217407-fc508ej7nk5mi6fundbfkgiijvmkdp1d.apps.googleusercontent.com',
-  });
+  androidClientId: '711038217407-jag8lodv05ag2tht92fpnplkaursbh8r.apps.googleusercontent.com',
+  iosClientId: '<YOUR_IOS_CLIENT_ID>',
+  expoClientId: '711038217407-e03mi45qvkbipdhbtjvg9remiupaih2r.apps.googleusercontent.com',
+  redirectUri: makeRedirectUri({ useProxy: true }),  // 👈 THIS IS KEY!
+});
 
   const validateInputs = () => {
     let valid = true;

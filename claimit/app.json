@@ -3,6 +3,7 @@
     "entryPoint": "./App.js",
     "name": "claimit",
     "slug": "claimit",
+    "owner": "matt_gits",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
