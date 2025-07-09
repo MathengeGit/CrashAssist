@@ -69,7 +69,7 @@ const AgentAnalyticsScreen = () => {
   // Breakdown statusCounts
   const statusMap = {};
   data.statusCounts.forEach((item) => {
-    statusMap[item._id] = item.count;
+    statusMap[item._id.charAt(0).toUpperCase() + item._id.slice(1).toLowerCase()] = item.count;
   });
 
   const pieChartData = data.statusCounts.map((item, index) => ({
