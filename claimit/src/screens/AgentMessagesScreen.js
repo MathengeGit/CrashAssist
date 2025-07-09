@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet,
-  Image, ActivityIndicator
+  ActivityIndicator
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+
+// ✅ Import and extend dayjs
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+dayjs.extend(relativeTime);
 
 const AgentMessagesScreen = () => {
   const [drivers, setDrivers] = useState([]);
@@ -57,10 +62,10 @@ const AgentMessagesScreen = () => {
     d.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  // ✅ Updated time formatter using dayjs
   const formatTime = (dateString) => {
     if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return dayjs(dateString).fromNow();
   };
 
   if (isLoading) {
@@ -77,7 +82,7 @@ const AgentMessagesScreen = () => {
         <Text style={styles.headerTitle}>Messages</Text>
         <Icon name="search" size={24} color="#4a6da7" />
       </View>
-      
+
       <TextInput
         placeholder="Search drivers..."
         placeholderTextColor="#999"
@@ -85,7 +90,7 @@ const AgentMessagesScreen = () => {
         value={search}
         onChangeText={setSearch}
       />
-      
+
       <FlatList
         data={filtered}
         keyExtractor={(item) => item._id}
@@ -101,11 +106,11 @@ const AgentMessagesScreen = () => {
             }
           >
             <View style={styles.avatar}>
-              <Image 
-                source={{ uri: 'https://via.placeholder.com/50' }} // Replace with actual avatar if available
-                style={styles.avatarImage}
-              />
+              <View style={styles.avatarCircle}>
+                <Icon name="person" size={28} color="#64748B" />
+              </View>
             </View>
+
             <View style={styles.messageContent}>
               <View style={styles.messageHeader}>
                 <Text style={styles.name}>{item.name}</Text>
@@ -115,7 +120,7 @@ const AgentMessagesScreen = () => {
                   </Text>
                 )}
               </View>
-              <Text 
+              <Text
                 style={styles.preview}
                 numberOfLines={1}
                 ellipsizeMode="tail"
@@ -193,11 +198,13 @@ const styles = StyleSheet.create({
   avatar: {
     marginRight: 12,
   },
-  avatarImage: {
+  avatarCircle: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#eaeaea',
+    backgroundColor: '#E2E8F0',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   messageContent: {
     flex: 1,
