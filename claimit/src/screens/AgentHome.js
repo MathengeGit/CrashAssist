@@ -15,6 +15,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react'
 
 const { width, height } = Dimensions.get('window');
 
@@ -27,8 +29,10 @@ const AgentDashboard = () => {
   const [menuVisible, setMenuVisible] = useState(false);
   const navigation = useNavigation();
 
-  useEffect(() => {
+  useFocusEffect(
+  useCallback(() => {
     const fetchClaims = async () => {
+      setLoading(true);
       try {
         const token = await AsyncStorage.getItem('token');
         const res = await axios.get('https://claimit-backend-q4jj.onrender.com/api/claims/agent', {
@@ -42,8 +46,10 @@ const AgentDashboard = () => {
         setLoading(false);
       }
     };
+
     fetchClaims();
-  }, []);
+  }, [])
+);
 
   useEffect(() => {
     filterClaims();
